@@ -23,5 +23,12 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  // `mcp/` es un proyecto npm propio (Fase 5.2, su propio
+  // `mcp/tsconfig.json`, corrido con `npm run type-check` DENTRO de
+  // `mcp/`) — sin este exclude, el `**/*.ts` de arriba lo barre igual y
+  // `npm run type-check` de la raíz termina compilando `mcp/src/` con las
+  // opciones del proyecto web (otro `lib`, otro alias `@/*` aunque
+  // resuelva al mismo lugar) en vez de las suyas, con errores confusos
+  // atribuidos al lugar equivocado.
+  "exclude": ["node_modules", "mcp"]
 }

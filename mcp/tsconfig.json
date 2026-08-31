@@ -2,7 +2,12 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "target": "es2022",
-    "lib": ["es2022"],
+    // "dom" no es para código de UI (esto es un proceso Node) — es la
+    // única lib que trae los tipos de `fetch`/`Response` que usa
+    // `lib/ai/embeddings.ts` (`await response.json()`); sin ella ese
+    // archivo, aunque compila bien en el proyecto web (que sí trae dom),
+    // no tipa acá.
+    "lib": ["es2022", "dom"],
     "module": "esnext",
     "moduleResolution": "bundler",
     "types": ["node"],

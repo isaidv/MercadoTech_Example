@@ -1,24 +1,27 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { registerTools } from "./tools/index.js";
 
 const SERVER_NAME = "mercadotech";
 const SERVER_VERSION = "0.1.0";
 
 /**
- * Crea la instancia del servidor MCP (Fase 5.2) — metadata y nada más:
- * todavía sin tools, sin resources, sin prompts. `McpServer` calcula sus
- * propias `capabilities` a partir de lo que se registre con
- * `registerTool`/`registerResource`/`registerPrompt`, así que un servidor
- * sin registros anuncia capabilities vacías por construcción, sin que haga
- * falta declararlas a mano acá.
+ * Crea la instancia del servidor MCP y registra sus capabilities.
+ * `McpServer` calcula `capabilities` a partir de lo que se registre con
+ * `registerTool`/`registerResource`/`registerPrompt` — no hace falta
+ * declararlas a mano.
  *
- * Las Fases 5.3 y 5.4 registran sobre la instancia que devuelve esta
- * función (o la extienden desde `mcp/src/tools/index.ts` /
- * `mcp/src/resources/index.ts`) — este archivo no crece con cada tool
- * nueva, solo arma el servidor.
+ * Fase 5.2: cero registros (capabilities vacías). Fase 5.3: las 10 tools
+ * de `tools/index.ts`. La Fase 5.4 suma resources/prompts acá mismo, con
+ * su propio `registerResources(server)`/`registerPrompts(server)` — este
+ * archivo no crece con cada tool/resource/prompt nueva, solo los conecta.
  */
 export function createServer(): McpServer {
-  return new McpServer({
+  const server = new McpServer({
     name: SERVER_NAME,
     version: SERVER_VERSION,
   });
+
+  registerTools(server);
+
+  return server;
 }
