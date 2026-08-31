@@ -31,6 +31,11 @@ const eslintConfig = [
       // ESLint intenta lintear como si fuera código propio — 174
       // problemas falsos, todos del SDK, ninguno de este repo.
       "mcp/dist/**",
+      // Reporte HTML de cobertura (Fase 6.1, `npm run test:coverage`) — es
+      // JS de terceros vendorizado por el reporter de Istanbul/v8, no
+      // código propio, y se regenera en cada corrida (ya está en
+      // `.gitignore`). Mismo motivo que `mcp/dist/**` arriba.
+      "coverage/**",
     ],
   },
 ];
