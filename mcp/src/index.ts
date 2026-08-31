@@ -27,7 +27,7 @@ async function main() {
   const server = createServer();
   await server.connect(new StdioServerTransport());
 
-  console.error("[mercadotech-mcp] servidor conectado por stdio (0 tools, 0 resources, 0 prompts — Fase 5.2)");
+  console.error("[mercadotech-mcp] servidor conectado por stdio (10 tools, 7 resources, 5 prompts — Fase 5.5)");
 }
 
 main().catch((error) => {
