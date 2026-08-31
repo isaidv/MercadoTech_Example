@@ -20,6 +20,7 @@ mcp/node_modules
 
 # production
 /build
+mcp/dist
 
 # misc
 .DS_Store
