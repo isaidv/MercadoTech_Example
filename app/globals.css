@@ -1,0 +1,182 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-heading);
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-3xl: var(--radius-3xl);
+  --radius-4xl: var(--radius-4xl);
+}
+
+/*
+ * Tokens de MercadoTech — origen: docs/design-reference/industry.css
+ * (paleta y tipografía) + el bloque [data-theme="dark"] embebido en
+ * docs/design-reference/MercadoTech.dc.html (paleta oscura). Reemplaza los
+ * valores neutros por defecto de shadcn (Fase 3.1).
+ *
+ * Primario: azul eléctrico atemperado a acero (--primary), rampa 100-900.
+ * El "accent" de shadcn (usado por dropdown/menu para hover sutil) es
+ * DISTINTO del "accent" de marca del diseño de referencia — acá se mapea a
+ * un neutro claro (no azul), para no pintar de marca cada estado hover de
+ * un menú; el azul de marca vive solo en --primary/--ring.
+ */
+/*
+ * --font-body y --font-heading YA NO se definen acá: desde la Fase 3.2 las
+ * fija next/font/google en app/layout.tsx (variable: "--font-body" /
+ * "--font-heading" sobre <html>) y bajan por herencia de custom properties
+ * hasta acá. @theme inline (arriba) las reexpone como --font-sans/--font-heading
+ * de Tailwind.
+ */
+:root {
+  --background: #f2f2f3;
+  --foreground: #1d1f20;
+  --card: #e9e9ea;
+  --card-foreground: #1d1f20;
+  --popover: #e9e9ea;
+  --popover-foreground: #1d1f20;
+
+  --primary: #5980a6;
+  --primary-foreground: #f2f2f3;
+
+  --secondary: #e7e7ea;
+  --secondary-foreground: #1d1f20;
+
+  --muted: #f5f5f8;
+  --muted-foreground: #7a7a7d;
+
+  --accent: #e7e7ea;
+  --accent-foreground: #1d1f20;
+
+  /* No definido en industry.css (no trae token de error/destructivo);
+     tomado del color de campo inválido del propio canvas de diseño
+     (MercadoTech.dc.html, formulario de login). */
+  --destructive: #b3423a;
+  --destructive-foreground: #f5f5f8;
+
+  --border: color-mix(in srgb, #1d1f20 16%, transparent);
+  --input: color-mix(in srgb, #1d1f20 16%, transparent);
+  --ring: #5980a6;
+
+  --chart-1: #b5d9fd;
+  --chart-2: #94bce3;
+  --chart-3: #749dc4;
+  --chart-4: #416180;
+  --chart-5: #2c455d;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 7px;
+  /* No definidos por industry.css (solo da sm/md/lg) — extrapolados en la
+     misma progresión para los componentes shadcn que sí los usan (sheet, etc). */
+  --radius-xl: 10px;
+  --radius-2xl: 14px;
+  --radius-3xl: 18px;
+  --radius-4xl: 22px;
+
+  --sidebar: #e9e9ea;
+  --sidebar-foreground: #1d1f20;
+  --sidebar-primary: #5980a6;
+  --sidebar-primary-foreground: #f2f2f3;
+  --sidebar-accent: #e7e7ea;
+  --sidebar-accent-foreground: #1d1f20;
+  --sidebar-border: color-mix(in srgb, #1d1f20 16%, transparent);
+  --sidebar-ring: #5980a6;
+}
+
+.dark {
+  --background: #17191a;
+  --foreground: #eceded;
+  --card: #1f2224;
+  --card-foreground: #eceded;
+  --popover: #1f2224;
+  --popover-foreground: #eceded;
+
+  --primary: #94bce3;
+  --primary-foreground: #17191a;
+
+  --secondary: #424244;
+  --secondary-foreground: #eceded;
+
+  --muted: #2b2b2d;
+  --muted-foreground: #d4d4d7;
+
+  --accent: #424244;
+  --accent-foreground: #eceded;
+
+  /* Extrapolación propia (no viene del diseño de referencia, que no define
+     un destructivo oscuro): mismo matiz que en claro, aclarado para
+     contraste sobre fondo oscuro. */
+  --destructive: #e0897f;
+  --destructive-foreground: #17191a;
+
+  --border: color-mix(in srgb, #eceded 22%, transparent);
+  --input: color-mix(in srgb, #eceded 22%, transparent);
+  --ring: #94bce3;
+
+  --chart-1: #b5d9fd;
+  --chart-2: #94bce3;
+  --chart-3: #749dc4;
+  --chart-4: #416180;
+  --chart-5: #2c455d;
+
+  --sidebar: #1f2224;
+  --sidebar-foreground: #eceded;
+  --sidebar-primary: #94bce3;
+  --sidebar-primary-foreground: #17191a;
+  --sidebar-accent: #424244;
+  --sidebar-accent-foreground: #eceded;
+  --sidebar-border: color-mix(in srgb, #eceded 22%, transparent);
+  --sidebar-ring: #94bce3;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}

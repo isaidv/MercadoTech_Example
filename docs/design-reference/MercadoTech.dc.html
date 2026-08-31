@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="industry.css">
+<style>
+  body { margin:0; background:var(--color-bg); color:var(--color-text); font-family:var(--font-body); }
+  * { box-sizing:border-box; }
+  a { color:var(--color-accent-700); text-decoration:none; }
+  a:hover { color:var(--color-accent-900); }
+  [data-theme="dark"] {
+    --color-bg:#17191a; --color-surface:#1f2224; --color-text:#eceded;
+    --color-divider:color-mix(in srgb,#eceded 22%,transparent);
+    --color-accent:#94bce3; --color-accent-100:#1d2d3d; --color-accent-200:#2c455d;
+    --color-accent-300:#416180; --color-accent-700:#b5d9fd; --color-accent-900:#eef6ff;
+    --color-neutral-100:#2b2b2d; --color-neutral-200:#424244; --color-neutral-300:#5d5d60;
+    --color-neutral-700:#d4d4d7; --color-neutral-800:#e7e7ea; --color-neutral-900:#f5f5f8;
+  }
+  :focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
+  ::selection { background:color-mix(in srgb,var(--color-accent) 30%,transparent); }
+</style>
+</helmet>
+
+<div style="display:grid;grid-template-columns:236px 1fr;min-height:100vh;background:var(--color-bg)">
+
+  <nav style="border-right:1px solid var(--color-divider);padding:20.4px 13.6px;position:sticky;top:0;height:100vh;overflow:auto;background:var(--color-bg)">
+    <div style="display:flex;align-items:baseline;gap:6.8px;padding:0 6.8px 13.6px">
+      <span style="font-family:var(--font-heading);font-weight:600;font-size:22px;letter-spacing:.02em">MERCADOTECH</span>
+    </div>
+    <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding:0 6.8px 13.6px;border-bottom:1px solid var(--color-divider)">Sistema de pantallas · v1</div>
+    <sc-for list="{{ navGroups }}" as="g" hint-placeholder-count="4">
+      <div style="padding-top:20.4px">
+        <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding:0 6.8px 6.8px">{{ g.label }}</div>
+        <div style="display:flex;flex-direction:column;gap:1px">
+          <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="4">
+            <button type="button" onClick="{{ it.go }}" aria-current="{{ it.current }}" style="{{ it.style }}" style-hover="background:color-mix(in srgb,var(--color-accent) 12%,transparent)">
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;opacity:.55;width:18px;display:inline-block">{{ it.num }}</span>
+              <span>{{ it.label }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </nav>
+
+  <main style="min-width:0;display:flex;flex-direction:column">
+
+    <header style="border-bottom:1px solid var(--color-divider);padding:13.6px 27.2px;display:flex;flex-wrap:wrap;gap:13.6px;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--color-bg);z-index:5">
+      <div>
+        <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">{{ routePath }}</div>
+        <div style="font-family:var(--font-heading);font-weight:600;font-size:24px;line-height:1.15">{{ routeTitle }}</div>
+      </div>
+      <div style="display:flex;gap:20.4px;align-items:center;flex-wrap:wrap">
+        <sc-if value="{{ hasVariants }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;border:1px solid var(--color-divider)">
+            <sc-for list="{{ variantOpts }}" as="v" hint-placeholder-count="4">
+              <button type="button" onClick="{{ v.go }}" style="{{ v.style }}">{{ v.label }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div style="display:flex;border:1px solid var(--color-divider)">
+          <sc-for list="{{ deviceOpts }}" as="d" hint-placeholder-count="3">
+            <button type="button" onClick="{{ d.go }}" style="{{ d.style }}">{{ d.label }}</button>
+          </sc-for>
+        </div>
+        <button type="button" onClick="{{ toggleTheme }}" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:6.8px 10.2px;font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">{{ themeLabel }}</button>
+      </div>
+    </header>
+
+    <div data-theme="{{ theme }}" style="flex:1;padding:27.2px;background:var(--color-bg);color:var(--color-text)">
+      <div style="width:100%;max-width:{{ deviceW }};margin:0 auto;border:1px solid var(--color-divider);background:var(--color-bg)">
+
+        <sc-if value="{{ isTokens }}" hint-placeholder-val="{{ true }}">
+          <div data-screen-label="Tokens" style="padding:27.2px;display:flex;flex-direction:column;gap:27.2px">
+            <div>
+              <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:6.8px">01 · Color</div>
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:28px;padding-bottom:3.4px">Paleta y tokens</div>
+              <p style="max-width:62ch;line-height:1.55;color:var(--color-neutral-700);margin:0">El primario es un azul eléctrico atemperado a acero (<code>--color-accent</code>) con rampa 100–900 en OKLCH: el mismo paso de cualquier rol pesa lo mismo. En Tailwind v4 estas variables entran en <code>@theme</code> y shadcn las consume vía <code>--primary</code> / <code>--ring</code>.</p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:1px;border:1px solid var(--color-divider)">
+              <sc-for list="{{ accentRamp }}" as="s" hint-placeholder-count="9">
+                <div style="padding:0">
+                  <div style="height:64px;background:{{ s.hex }}"></div>
+                  <div style="padding:6.8px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;line-height:1.5;border-top:1px solid var(--color-divider)">
+                    <div>{{ s.name }}</div>
+                    <div style="color:var(--color-neutral-600)">{{ s.hex }}</div>
+                    <div style="color:var(--color-neutral-600)">{{ s.use }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20.4px">
+              <div style="position:relative;border:1px solid var(--color-divider);padding:20.4px">
+                <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                <i style="position:absolute;right:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                <i style="position:absolute;left:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:10.2px">Tipografía</div>
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:34px;line-height:1.05">Barlow Condensed</div>
+                <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--color-neutral-600);padding-bottom:10.2px">--font-heading · títulos, precios, cifras</div>
+                <div style="font-size:15px;line-height:1.55">Barlow — cuerpo, etiquetas de formulario, descripciones de producto y textos de ayuda.</div>
+                <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--color-neutral-600)">--font-body · 400 / 500 / 700</div>
+              </div>
+
+              <div style="position:relative;border:1px solid var(--color-divider);padding:20.4px">
+                <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                <i style="position:absolute;right:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                <i style="position:absolute;left:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:10.2px">Espaciado y radio</div>
+                <div style="display:flex;flex-direction:column;gap:6.8px">
+                  <sc-for list="{{ spaceScale }}" as="sp" hint-placeholder-count="6">
+                    <div style="display:flex;align-items:center;gap:10.2px;font-family:ui-monospace,Menlo,monospace;font-size:10px">
+                      <span style="width:78px;color:var(--color-neutral-600)">{{ sp.name }}</span>
+                      <span style="width:52px">{{ sp.val }}</span>
+                      <span style="height:8px;background:var(--color-accent);width:{{ sp.val }}"></span>
+                    </div>
+                  </sc-for>
+                  <div style="display:flex;gap:10.2px;padding-top:10.2px;align-items:flex-end">
+                    <div style="width:52px;height:36px;border:1px solid var(--color-divider);border-radius:var(--radius-sm)"></div>
+                    <div style="width:52px;height:36px;border:1px solid var(--color-divider);border-radius:var(--radius-md)"></div>
+                    <div style="width:52px;height:36px;border:1px solid var(--color-divider);border-radius:var(--radius-lg)"></div>
+                    <span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--color-neutral-600)">sm 2 · md 4 · lg 7</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="border-top:1px solid var(--color-divider);padding-top:13.6px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.7;color:var(--color-neutral-700)">
+              <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:3.4px">Notas de implementación</div>
+              <div>· Tokens en <code>@theme</code> de Tailwind v4; shadcn lee <code>--primary</code>, <code>--ring</code>, <code>--border</code>, <code>--radius</code> desde aquí.</div>
+              <div>· Tema oscuro = misma rampa invertida en <code>.dark</code>; ningún componente define color propio.</div>
+              <div>· El acento sobre el fondo alcanza 3:1 — para texto de párrafo en acento usar <code>accent-700</code>.</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+          <div data-screen-label="Home">
+            <div style="border-bottom:1px solid var(--color-divider);padding:13.6px 20.4px;display:flex;gap:13.6px;align-items:center;flex-wrap:wrap">
+              <span style="font-family:var(--font-heading);font-weight:600;font-size:19px;letter-spacing:.02em;color:var(--color-accent-700)">MERCADOTECH</span>
+              <div style="flex:1;min-width:180px;display:flex;border:1px solid var(--color-divider)">
+                <span style="padding:8px 10.2px;font-size:13.5px;color:var(--color-neutral-600);flex:1">Buscar laptops, celulares, componentes…</span>
+                <span style="background:var(--color-accent);color:#fff;padding:8px 13.6px;font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.1em;display:flex;align-items:center">BUSCAR</span>
+              </div>
+              <span style="font-size:13.5px;color:var(--color-neutral-700)">Categorías ▾</span>
+              <div style="position:relative;border:1px solid var(--color-divider);padding:6.8px 10.2px;font-size:13px">Carrito
+                <span style="position:absolute;top:-8px;right:-8px;background:var(--color-accent);color:#fff;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;padding:2px 5px">3</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6.8px;font-size:13.5px"><span style="width:26px;height:26px;border:1px solid var(--color-divider);display:grid;place-items:center;font-family:ui-monospace,Menlo,monospace;font-size:10px">JR</span>Mi cuenta ▾</div>
+            </div>
+
+            <div style="display:flex;flex-wrap:wrap;align-items:stretch">
+              <aside style="border-right:1px solid var(--color-divider);padding:20.4px;display:flex;flex-direction:column;gap:20.4px;flex:1 1 236px;min-width:0">
+                <div>
+                  <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:10.2px">Condición</div>
+                  <div style="display:flex;flex-direction:column;gap:6.8px;font-size:13.5px">
+                    <label style="display:flex;gap:6.8px;align-items:center"><input type="checkbox" checked="checked" />Nuevo <span style="color:var(--color-neutral-600);font-family:ui-monospace,Menlo,monospace;font-size:10px">11</span></label>
+                    <label style="display:flex;gap:6.8px;align-items:center"><input type="checkbox" />Usado <span style="color:var(--color-neutral-600);font-family:ui-monospace,Menlo,monospace;font-size:10px">3</span></label>
+                    <label style="display:flex;gap:6.8px;align-items:center"><input type="checkbox" />Reacondicionado <span style="color:var(--color-neutral-600);font-family:ui-monospace,Menlo,monospace;font-size:10px">2</span></label>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:10.2px">Precio (S/)</div>
+                  <div style="display:flex;gap:6.8px">
+                    <span style="border:1px solid var(--color-divider);padding:6.8px;font-size:13px;flex:1;color:var(--color-neutral-600)">Mín</span>
+                    <span style="border:1px solid var(--color-divider);padding:6.8px;font-size:13px;flex:1;color:var(--color-neutral-600)">Máx</span>
+                  </div>
+                  <div style="height:1px;background:var(--color-divider);margin:13.6px 0;position:relative">
+                    <span style="position:absolute;left:18%;top:-4px;width:9px;height:9px;background:var(--color-accent)"></span>
+                    <span style="position:absolute;left:72%;top:-4px;width:9px;height:9px;background:var(--color-accent)"></span>
+                  </div>
+                  <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--color-neutral-600)">S/ 129 — S/ 3,499</div>
+                </div>
+                <div>
+                  <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:10.2px">Orden</div>
+                  <div style="border:1px solid var(--color-divider);padding:8px;font-size:13.5px;display:flex;justify-content:space-between">Más recientes <span>▾</span></div>
+                </div>
+                <button type="button" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:8px;font-size:13px;cursor:pointer;font-family:var(--font-body)" style-hover="background:color-mix(in srgb,var(--color-accent) 12%,transparent)">Limpiar filtros</button>
+              </aside>
+
+              <section style="padding:20.4px;min-width:0;flex:999 1 420px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;padding-bottom:13.6px;flex-wrap:wrap;gap:6.8px">
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:22px">Productos destacados</div>
+                  <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--color-neutral-600)">{{ resultCount }}</div>
+                </div>
+
+                <sc-if value="{{ showData }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20.4px">
+                    <sc-for list="{{ products }}" as="p" hint-placeholder-count="8">
+                      <article style="position:relative;border:1px solid var(--color-divider);padding:13.6px;display:flex;flex-direction:column;gap:8px" style-hover="border-color:var(--color-accent)">
+                        <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                        <i style="position:absolute;right:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                        <i style="position:absolute;left:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                        <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                        <div style="position:relative;aspect-ratio:4/3;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 5px,transparent 5px 11px);display:grid;place-items:center;text-align:center;padding:6.8px">
+                          <span style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-accent-700)">{{ p.img }}</span>
+                        </div>
+                        <div style="display:flex;gap:5px;flex-wrap:wrap">
+                          <span style="font-family:ui-monospace,Menlo,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--color-divider);padding:2px 5px;color:var(--color-neutral-700)">{{ p.brand }}</span>
+                          <span style="font-family:ui-monospace,Menlo,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 5px;background:{{ p.condBg }};color:{{ p.condFg }}">{{ p.cond }}</span>
+                        </div>
+                        <div style="font-size:14px;line-height:1.35;text-wrap:pretty;min-height:2.7em">{{ p.name }}</div>
+                        <div style="font-family:var(--font-heading);font-weight:600;font-size:23px;line-height:1">{{ p.price }}</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:var(--color-neutral-600)">
+                          <span>★ {{ p.rating }} · {{ p.reviews }}</span>
+                          <span style="color:{{ p.stockFg }}">{{ p.stock }}</span>
+                        </div>
+                      </article>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex;justify-content:center;gap:1px;padding-top:27.2px">
+                    <span style="border:1px solid var(--color-divider);padding:6.8px 13.6px;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--color-neutral-500)">‹</span>
+                    <span style="border:1px solid var(--color-accent);background:var(--color-accent);color:#fff;padding:6.8px 13.6px;font-family:ui-monospace,Menlo,monospace;font-size:11px">1</span>
+                    <span style="border:1px solid var(--color-divider);padding:6.8px 13.6px;font-family:ui-monospace,Menlo,monospace;font-size:11px">2</span>
+                    <span style="border:1px solid var(--color-divider);padding:6.8px 13.6px;font-family:ui-monospace,Menlo,monospace;font-size:11px">›</span>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20.4px">
+                    <sc-for list="{{ eight }}" as="k" hint-placeholder-count="8">
+                      <div style="border:1px solid var(--color-divider);padding:13.6px;display:flex;flex-direction:column;gap:8px">
+                        <div style="aspect-ratio:4/3;background:var(--color-neutral-200)"></div>
+                        <div style="height:11px;width:52px;background:var(--color-neutral-200)"></div>
+                        <div style="height:13px;background:var(--color-neutral-200)"></div>
+                        <div style="height:13px;width:70%;background:var(--color-neutral-200)"></div>
+                        <div style="height:21px;width:56%;background:var(--color-neutral-300)"></div>
+                        <div style="height:9px;width:44%;background:var(--color-neutral-200)"></div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:relative;border:1px solid var(--color-divider);padding:54.4px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                    <div style="width:88px;height:88px;border:1px solid var(--color-accent);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 5px,transparent 5px 11px);display:grid;place-items:center;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--color-accent-700)">0</div>
+                    <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">Ningún producto coincide con los filtros</div>
+                    <p style="margin:0;max-width:44ch;line-height:1.55;color:var(--color-neutral-700);font-size:14px">Prueba con un rango de precio más amplio o quita la condición seleccionada.</p>
+                    <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:10.2px 20.4px;font-family:var(--font-body);font-size:14px;cursor:pointer;position:relative">Limpiar filtros</button>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+                  <div style="border:1px solid var(--color-divider);padding:54.4px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                    <div style="width:88px;height:88px;border:1px solid var(--color-neutral-500);display:grid;place-items:center;font-family:var(--font-heading);font-size:38px;color:var(--color-neutral-600)">!</div>
+                    <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">No pudimos cargar el catálogo</div>
+                    <p style="margin:0;max-width:44ch;line-height:1.55;color:var(--color-neutral-700);font-size:14px">La conexión con el servidor falló. Tus filtros se mantienen.</p>
+                    <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:10.2px 20.4px;font-family:var(--font-body);font-size:14px;cursor:pointer">Reintentar</button>
+                  </div>
+                </sc-if>
+              </section>
+            </div>
+
+            <div style="border-top:1px solid var(--color-divider);padding:13.6px 20.4px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.7;color:var(--color-neutral-700)">
+              <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:3.4px">Reutiliza · notas</div>
+              <div>· Layout tienda: Navbar + Sheet móvil. Filtros: Checkbox, Input, Select, Button ghost.</div>
+              <div>· Grid: Card + ProductImage + ConditionBadge + Price + RatingStars (lectura). Paginación: Button icon.</div>
+              <div>· Grid responsive sin media queries: <code>repeat(auto-fill,minmax(210px,1fr))</code> → 1/2/3/4 columnas en 375/768/1024/1280.</div>
+              <div>· WD SSD 1TB tiene stock 0 y sigue listado (solo <code>is_active=false</code> lo oculta); la tarjeta lo marca “Sin stock”.</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isCarrito }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Carrito">
+            <div style="border-bottom:1px solid var(--color-divider);padding:13.6px 20.4px;display:flex;gap:13.6px;align-items:center">
+              <span style="font-family:var(--font-heading);font-weight:600;font-size:19px;letter-spacing:.02em;color:var(--color-accent-700)">MERCADOTECH</span>
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--color-neutral-600)">/ carrito</span>
+            </div>
+
+            <sc-if value="{{ showData }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-wrap:wrap;align-items:flex-start">
+                <section style="padding:20.4px;min-width:0;display:flex;flex-direction:column;gap:13.6px;flex:999 1 420px">
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:26px">Tu carrito <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--color-neutral-600)">3 ítems</span></div>
+                  <sc-for list="{{ cart }}" as="c" hint-placeholder-count="3">
+                    <article style="position:relative;border:1px solid var(--color-divider);padding:13.6px;display:grid;grid-template-columns:96px 1fr auto;gap:13.6px;align-items:start">
+                      <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                      <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                      <div style="aspect-ratio:1;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 5px,transparent 5px 11px);display:grid;place-items:center;padding:5px;text-align:center">
+                        <span style="font-family:ui-monospace,Menlo,monospace;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-accent-700)">{{ c.img }}</span>
+                      </div>
+                      <div style="display:flex;flex-direction:column;gap:6.8px;min-width:0">
+                        <div style="font-size:15px;line-height:1.35">{{ c.name }}</div>
+                        <div style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">{{ c.brand }} · {{ c.cond }}</div>
+                        <div style="display:flex;gap:13.6px;align-items:center;flex-wrap:wrap">
+                          <div style="display:flex;border:1px solid var(--color-divider)">
+                            <button type="button" aria-label="Quitar una unidad" style="border:0;background:transparent;color:inherit;width:30px;height:30px;cursor:pointer;font-size:15px">−</button>
+                            <span style="width:34px;display:grid;place-items:center;border-left:1px solid var(--color-divider);border-right:1px solid var(--color-divider);font-family:ui-monospace,Menlo,monospace;font-size:12px">{{ c.qty }}</span>
+                            <button type="button" aria-label="Agregar una unidad" style="border:0;background:transparent;color:inherit;width:30px;height:30px;cursor:pointer;font-size:15px">+</button>
+                          </div>
+                          <button type="button" style="border:0;background:transparent;color:var(--color-accent-700);padding:0;font-family:var(--font-body);font-size:13px;cursor:pointer;text-decoration:underline">Quitar</button>
+                        </div>
+                      </div>
+                      <div style="text-align:right">
+                        <div style="font-family:var(--font-heading);font-weight:600;font-size:21px;line-height:1">{{ c.line }}</div>
+                        <div style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:var(--color-neutral-600)">{{ c.unit }} c/u</div>
+                      </div>
+                    </article>
+                  </sc-for>
+                </section>
+
+                <aside style="padding:20.4px;border-left:1px solid var(--color-divider);display:flex;flex-direction:column;gap:13.6px;position:sticky;top:0;flex:1 1 300px;min-width:0">
+                  <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Resumen</div>
+                  <div style="display:flex;flex-direction:column;gap:6.8px;font-size:14px">
+                    <div style="display:flex;justify-content:space-between"><span>Subtotal (3)</span><span>S/ 2,748.80</span></div>
+                    <div style="display:flex;justify-content:space-between"><span>Envío</span><span style="color:var(--color-neutral-600)">Por calcular</span></div>
+                  </div>
+                  <div style="border-top:1px solid var(--color-divider);padding-top:10.2px;display:flex;justify-content:space-between;align-items:baseline">
+                    <span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase">Total</span>
+                    <span style="font-family:var(--font-heading);font-weight:600;font-size:29px;line-height:1">S/ 2,748.80</span>
+                  </div>
+                  <div style="border:1px solid var(--color-accent);background:color-mix(in srgb,var(--color-accent) 10%,transparent);padding:10.2px;font-size:12.5px;line-height:1.5;color:var(--color-accent-900)">
+                    <strong style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;display:block;padding-bottom:3.4px">Pago simulado</strong>
+                    Este checkout no cobra. Al confirmar se crea el pedido en estado <em>pendiente</em> y no se procesa ningún cargo real.
+                  </div>
+                  <button type="button" style="position:relative;background:var(--color-accent);color:#fff;border:0;padding:13.6px;font-family:var(--font-body);font-size:15px;cursor:pointer" style-hover="background:var(--color-accent-600)">Continuar al checkout</button>
+                  <button type="button" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:10.2px;font-family:var(--font-body);font-size:13.5px;cursor:pointer">Seguir comprando</button>
+                </aside>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+                <div style="padding:20.4px;display:flex;flex-direction:column;gap:13.6px">
+                  <div style="height:24px;width:220px;background:var(--color-neutral-200)"></div>
+                  <sc-for list="{{ three }}" as="k" hint-placeholder-count="3">
+                    <div style="border:1px solid var(--color-divider);padding:13.6px;display:grid;grid-template-columns:96px 1fr 90px;gap:13.6px">
+                      <div style="aspect-ratio:1;background:var(--color-neutral-200)"></div>
+                      <div style="display:flex;flex-direction:column;gap:8px"><div style="height:14px;background:var(--color-neutral-200)"></div><div style="height:10px;width:40%;background:var(--color-neutral-200)"></div><div style="height:30px;width:120px;background:var(--color-neutral-200);margin-top:6.8px"></div></div>
+                      <div style="height:20px;background:var(--color-neutral-300)"></div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="padding:20.4px;border-left:1px solid var(--color-divider);display:flex;flex-direction:column;gap:10.2px">
+                  <div style="height:10px;width:80px;background:var(--color-neutral-200)"></div>
+                  <div style="height:13px;background:var(--color-neutral-200)"></div>
+                  <div style="height:13px;width:70%;background:var(--color-neutral-200)"></div>
+                  <div style="height:28px;background:var(--color-neutral-300)"></div>
+                  <div style="height:64px;background:var(--color-neutral-200)"></div>
+                  <div style="height:44px;background:var(--color-neutral-300)"></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:68px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                <div style="position:relative;width:104px;height:88px;border:1px solid var(--color-accent);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 5px,transparent 5px 11px)">
+                  <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                  <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                </div>
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:28px">Tu carrito está vacío</div>
+                <p style="margin:0;max-width:46ch;line-height:1.55;color:var(--color-neutral-700);font-size:14.5px">Guarda aquí lo que quieras comprar. Nada se cobra hasta el checkout, y el checkout es simulado.</p>
+                <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:13.6px 27.2px;font-family:var(--font-body);font-size:15px;cursor:pointer">Explorar productos</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:68px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                <div style="width:88px;height:88px;border:1px solid var(--color-neutral-500);display:grid;place-items:center;font-family:var(--font-heading);font-size:38px;color:var(--color-neutral-600)">!</div>
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:26px">No pudimos leer tu carrito</div>
+                <p style="margin:0;max-width:46ch;line-height:1.55;color:var(--color-neutral-700);font-size:14.5px">Los ítems siguen guardados en tu cuenta. Vuelve a intentarlo.</p>
+                <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:13.6px 27.2px;font-family:var(--font-body);font-size:15px;cursor:pointer">Reintentar</button>
+              </div>
+            </sc-if>
+
+            <div style="border-top:1px solid var(--color-divider);padding:13.6px 20.4px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.7;color:var(--color-neutral-700)">
+              <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:3.4px">Reutiliza · notas</div>
+              <div>· Card por ítem, ProductImage, Price, ConditionBadge, Button ghost (“Quitar”), stepper de cantidad = Button icon ×2 + Input readonly.</div>
+              <div>· Aviso “pago simulado” = Alert con borde acento; obligatorio en carrito y en checkout.</div>
+              <div>· En 375px el resumen pasa debajo de la lista y el botón de checkout queda fijo al borde inferior (44px mínimo).</div>
+              <div>· Vacío → EmptyState con acción “Explorar productos”; carga → skeleton con la misma retícula 96px/1fr/precio.</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isBase }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Componentes base" style="padding:27.2px;display:flex;flex-direction:column;gap:27.2px">
+            <div>
+              <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">02 · shadcn/ui</div>
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:28px">Componentes base</div>
+              <p style="max-width:64ch;line-height:1.55;color:var(--color-neutral-700);margin:0;font-size:14.5px">Cada bloque es una variante de shadcn retematizada con los tokens: esquina recta, borde de un pixel, marcas de registro en las tarjetas y un único relleno sólido — el botón primario.</p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20.4px">
+
+              <div style="border:1px solid var(--color-divider);padding:20.4px;display:flex;flex-direction:column;gap:13.6px">
+                <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Button</div>
+                <div style="display:flex;flex-wrap:wrap;gap:10.2px;align-items:center">
+                  <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:9px 17px;font-family:var(--font-body);font-size:14px;cursor:pointer" style-hover="background:var(--color-accent-600)">Agregar al carrito</button>
+                  <button type="button" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:8px 16px;font-family:var(--font-body);font-size:14px;cursor:pointer" style-hover="background:color-mix(in srgb,var(--color-accent) 12%,transparent)">Secundario</button>
+                  <button type="button" style="border:0;background:transparent;color:var(--color-accent-700);padding:8px 10px;font-family:var(--font-body);font-size:14px;cursor:pointer;text-decoration:underline">Ghost</button>
+                  <button type="button" aria-label="Favorito" style="border:1px solid var(--color-divider);background:transparent;color:inherit;width:36px;height:36px;cursor:pointer">♡</button>
+                  <button type="button" disabled="disabled" style="background:var(--color-accent);color:#fff;border:0;padding:9px 17px;font-family:var(--font-body);font-size:14px;opacity:.45;cursor:not-allowed">Sin stock</button>
+                </div>
+                <div style="font:10px/1.6 ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">default · outline · ghost · icon · disabled — alto mínimo 44px en móvil</div>
+              </div>
+
+              <div style="border:1px solid var(--color-divider);padding:20.4px;display:flex;flex-direction:column;gap:13.6px">
+                <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Input · Select</div>
+                <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Correo
+                  <input type="email" value="jose@correo.pe" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:9px;font-family:var(--font-body);font-size:14px;border-radius:var(--radius-md)" />
+                </label>
+                <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Contraseña
+                  <input type="password" value="123456" aria-invalid="true" style="border:1px solid #b3423a;background:transparent;color:inherit;padding:9px;font-family:var(--font-body);font-size:14px;border-radius:var(--radius-md)" />
+                  <span style="font-size:12px;color:#b3423a">Mínimo 8 caracteres.</span>
+                </label>
+                <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Categoría
+                  <span style="border:1px solid var(--color-divider);padding:9px;font-size:14px;display:flex;justify-content:space-between;border-radius:var(--radius-md)">Laptops <span>▾</span></span>
+                </label>
+              </div>
+
+              <div style="border:1px solid var(--color-divider);padding:20.4px;display:flex;flex-direction:column;gap:13.6px">
+                <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Badge · Avatar · Tabs</div>
+                <div style="display:flex;gap:6.8px;flex-wrap:wrap">
+                  <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:3px 6px;background:var(--color-accent);color:#fff">default</span>
+                  <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:3px 6px;background:var(--color-neutral-200);color:var(--color-neutral-800)">secondary</span>
+                  <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:3px 6px;border:1px solid var(--color-divider)">outline</span>
+                </div>
+                <div style="display:flex;gap:10.2px;align-items:center">
+                  <span style="width:34px;height:34px;border:1px solid var(--color-divider);display:grid;place-items:center;font:11px ui-monospace,Menlo,monospace">JR</span>
+                  <span style="width:34px;height:34px;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 16%,transparent) 0 4px,transparent 4px 9px)"></span>
+                  <span style="font-size:12.5px;color:var(--color-neutral-700)">iniciales como fallback de avatars</span>
+                </div>
+                <div style="display:flex;border-bottom:1px solid var(--color-divider)">
+                  <span style="padding:8px 13.6px;font-size:13.5px;border-bottom:2px solid var(--color-accent);margin-bottom:-1px">Preguntas</span>
+                  <span style="padding:8px 13.6px;font-size:13.5px;color:var(--color-neutral-600)">Reseñas</span>
+                </div>
+              </div>
+
+              <div style="border:1px solid var(--color-divider);padding:20.4px;display:flex;flex-direction:column;gap:13.6px">
+                <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Dropdown · Sheet</div>
+                <div style="display:flex;gap:13.6px;align-items:flex-start">
+                  <div style="border:1px solid var(--color-divider);box-shadow:var(--shadow-md);background:var(--color-bg);min-width:168px">
+                    <div style="padding:8px 10.2px;font-size:13.5px;border-bottom:1px solid var(--color-divider)">Mis pedidos</div>
+                    <div style="padding:8px 10.2px;font-size:13.5px;border-bottom:1px solid var(--color-divider)">Favoritos</div>
+                    <div style="padding:8px 10.2px;font-size:13.5px;border-bottom:1px solid var(--color-divider);background:color-mix(in srgb,var(--color-accent) 14%,transparent)">Panel vendedor</div>
+                    <div style="padding:8px 10.2px;font-size:13.5px;color:var(--color-accent-700)">Cerrar sesión</div>
+                  </div>
+                  <div style="width:112px;border:1px solid var(--color-divider);background:var(--color-bg);box-shadow:var(--shadow-lg);padding:10.2px;display:flex;flex-direction:column;gap:6.8px">
+                    <div style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Sheet 375px</div>
+                    <div style="height:9px;background:var(--color-neutral-200)"></div>
+                    <div style="height:9px;background:var(--color-neutral-200)"></div>
+                    <div style="height:9px;width:70%;background:var(--color-neutral-200)"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="border:1px solid var(--color-divider);padding:20.4px;display:flex;flex-direction:column;gap:13.6px">
+                <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Dialog</div>
+                <div style="border:1px solid var(--color-divider);background:color-mix(in srgb,var(--color-text) 8%,transparent);padding:20.4px;display:grid;place-items:center">
+                  <div style="position:relative;background:var(--color-bg);border:1px solid var(--color-divider);box-shadow:var(--shadow-lg);padding:17px;max-width:280px">
+                    <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                    <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                    <div style="font-family:var(--font-heading);font-weight:600;font-size:19px">¿Cancelar el pedido?</div>
+                    <p style="margin:5px 0 13.6px;font-size:13.5px;line-height:1.5;color:var(--color-neutral-700)">Solo se puede cancelar mientras está pendiente. Esta acción no se puede deshacer.</p>
+                    <div style="display:flex;gap:6.8px;justify-content:flex-end">
+                      <button type="button" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:7px 13px;font-family:var(--font-body);font-size:13px;cursor:pointer">Volver</button>
+                      <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:8px 14px;font-family:var(--font-body);font-size:13px;cursor:pointer">Sí, cancelar</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="border:1px solid var(--color-divider);padding:20.4px;display:flex;flex-direction:column;gap:13.6px">
+                <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Skeleton · Table</div>
+                <div style="display:flex;flex-direction:column;gap:6.8px">
+                  <div style="height:11px;width:60%;background:var(--color-neutral-200)"></div>
+                  <div style="height:11px;background:var(--color-neutral-200)"></div>
+                  <div style="height:11px;width:40%;background:var(--color-neutral-200)"></div>
+                </div>
+                <table style="width:100%;border-collapse:collapse;font-size:13px">
+                  <thead><tr style="border-bottom:1px solid var(--color-divider)">
+                    <th style="text-align:left;padding:6.8px 0;font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Producto</th>
+                    <th style="text-align:right;padding:6.8px 0;font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Precio</th>
+                  </tr></thead>
+                  <tbody>
+                    <tr style="border-bottom:1px solid var(--color-divider)"><td style="padding:8px 0">Logitech G502 Hero</td><td style="text-align:right;font-family:var(--font-heading);font-weight:600">S/ 179.90</td></tr>
+                    <tr><td style="padding:8px 0">Redragon Kumara K552</td><td style="text-align:right;font-family:var(--font-heading);font-weight:600">S/ 129.90</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div style="border-top:1px solid var(--color-divider);padding-top:13.6px;font:10.5px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">
+              <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Notas</div>
+              <div>· Focus visible en todos: <code>:focus-visible</code> con anillo de 2px en acento, offset 2px. Nunca el azul del navegador.</div>
+              <div>· Estados de error de formulario con <code>aria-invalid</code> + mensaje bajo el campo, no solo color.</div>
+              <div>· Sheet reemplaza al Dropdown y al panel de filtros por debajo de 768px.</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isDominio }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Componentes de dominio" style="padding:27.2px;display:flex;flex-direction:column;gap:27.2px">
+            <div>
+              <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">03 · Dominio</div>
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:28px">Componentes propios</div>
+              <p style="max-width:64ch;line-height:1.55;color:var(--color-neutral-700);margin:0;font-size:14.5px">Cinco piezas que encapsulan reglas de datos: formato de moneda, lectura y edición de puntaje, condición, estado de pedido e imagen ausente.</p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20.4px">
+              <div style="border:1px solid var(--color-divider);padding:20.4px">
+                <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:10.2px">Price</div>
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:36px;line-height:1">S/ 1,299.90</div>
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:23px;line-height:1.1">S/ 179.90</div>
+                <div style="font-size:14px;text-decoration:line-through;color:var(--color-neutral-600)">S/ 2,199.00</div>
+                <div style="font:10px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-600);padding-top:6.8px">Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN'}) · siempre 2 decimales, coma de miles, nunca "S/." ni "PEN"</div>
+              </div>
+
+              <div style="border:1px solid var(--color-divider);padding:20.4px">
+                <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:10.2px">RatingStars</div>
+                <div style="font-size:19px;letter-spacing:.1em;color:var(--color-accent)">★★★★<span style="color:var(--color-neutral-400)">★</span> <span style="font:11px ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">4.6 · 18 reseñas</span></div>
+                <div style="padding-top:13.6px;font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Edición</div>
+                <div role="radiogroup" aria-label="Tu puntaje" style="display:flex;gap:5px;padding-top:5px">
+                  <button type="button" aria-checked="true" style="border:1px solid var(--color-accent);background:var(--color-accent);color:#fff;width:34px;height:34px;font-size:15px;cursor:pointer">★</button>
+                  <button type="button" aria-checked="true" style="border:1px solid var(--color-accent);background:var(--color-accent);color:#fff;width:34px;height:34px;font-size:15px;cursor:pointer">★</button>
+                  <button type="button" aria-checked="true" style="border:1px solid var(--color-accent);background:var(--color-accent);color:#fff;width:34px;height:34px;font-size:15px;cursor:pointer">★</button>
+                  <button type="button" aria-checked="true" style="border:1px solid var(--color-accent);background:var(--color-accent);color:#fff;width:34px;height:34px;font-size:15px;cursor:pointer">★</button>
+                  <button type="button" aria-checked="false" style="border:1px solid var(--color-divider);background:transparent;color:var(--color-neutral-500);width:34px;height:34px;font-size:15px;cursor:pointer">★</button>
+                </div>
+                <div style="font:10px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-600);padding-top:6.8px">Editable = radiogroup navegable con ← →, no cinco divs con onClick</div>
+              </div>
+
+              <div style="border:1px solid var(--color-divider);padding:20.4px">
+                <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:10.2px">ConditionBadge</div>
+                <div style="display:flex;gap:6.8px;flex-wrap:wrap">
+                  <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;background:var(--color-accent);color:#fff">Nuevo</span>
+                  <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;background:var(--color-neutral-200);color:var(--color-neutral-800)">Usado</span>
+                  <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;background:color-mix(in srgb,var(--color-accent) 22%,transparent);color:var(--color-accent-900)">Reacondicionado</span>
+                </div>
+                <div style="padding-top:20.4px;font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">OrderStatusBadge</div>
+                <div style="display:flex;gap:6.8px;flex-wrap:wrap;padding-top:6.8px">
+                  <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;border:1px solid var(--color-neutral-400);color:var(--color-neutral-800)">Pendiente</span>
+                  <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;background:var(--color-accent-200);color:var(--color-accent-900)">Pagado</span>
+                  <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;background:var(--color-accent-400);color:var(--color-accent-900)">Enviado</span>
+                  <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;background:var(--color-accent-700);color:#fff">Entregado</span>
+                  <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;border:1px dashed var(--color-neutral-500);color:var(--color-neutral-600)">Cancelado</span>
+                </div>
+                <div style="font:10px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-600);padding-top:6.8px">Los cinco estados se distinguen por paso de rampa y por trazo (contorno → relleno → borde discontinuo), no solo por color: legible en escala de grises.</div>
+              </div>
+
+              <div style="border:1px solid var(--color-divider);padding:20.4px">
+                <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:10.2px">ProductImage · fallback</div>
+                <div style="position:relative;aspect-ratio:4/3;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 5px,transparent 5px 11px);display:grid;place-items:center;text-align:center;padding:13.6px">
+                  <div>
+                    <div style="font-family:var(--font-heading);font-weight:600;font-size:17px;color:var(--color-accent-900)">Samsung</div>
+                    <div style="font:9.5px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--color-accent-700)">Galaxy A55 · imagen pendiente</div>
+                  </div>
+                  <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                  <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                </div>
+                <div style="font:10px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-600);padding-top:6.8px">Sin archivo en Storage el fallback muestra marca + modelo sobre trama técnica. Nunca un ícono de imagen rota.</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isLayouts }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Layouts" style="padding:27.2px;display:flex;flex-direction:column;gap:27.2px">
+            <div>
+              <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">04 · Navegación</div>
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:28px">Los tres layouts</div>
+            </div>
+
+            <div style="border:1px solid var(--color-divider)">
+              <div style="padding:13.6px 20.4px;display:flex;gap:13.6px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--color-divider)">
+                <span style="font-family:var(--font-heading);font-weight:600;font-size:19px;color:var(--color-accent-700)">MERCADOTECH</span>
+                <div style="flex:1;min-width:160px;border:1px solid var(--color-divider);padding:8px 10.2px;font-size:13.5px;color:var(--color-neutral-600)">Buscar…</div>
+                <span style="font-size:13.5px">Categorías ▾</span>
+                <span style="border:1px solid var(--color-divider);padding:6.8px 10.2px;font-size:13px">Carrito · 3</span>
+                <span style="font-size:13.5px">Ingresar</span>
+              </div>
+              <div style="padding:13.6px 20.4px;display:flex;gap:20.4px;align-items:flex-start;flex-wrap:wrap">
+                <div style="width:200px;border:1px solid var(--color-divider);padding:10.2px">
+                  <div style="font:9px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:6.8px">Móvil 375 · drawer</div>
+                  <div style="display:flex;justify-content:space-between;font-size:13.5px;padding-bottom:10.2px;border-bottom:1px solid var(--color-divider)"><span>☰ MERCADOTECH</span><span>3</span></div>
+                  <div style="display:flex;flex-direction:column;gap:6.8px;padding-top:10.2px;font-size:13px">
+                    <span>Categorías</span><span>Mis pedidos</span><span>Favoritos</span><span>Panel vendedor</span><span style="color:var(--color-accent-700)">Cerrar sesión</span>
+                  </div>
+                </div>
+                <div style="flex:1;min-width:220px;display:flex;gap:20.4px;align-items:flex-start">
+                  <div style="width:180px;border:1px solid var(--color-divider);padding:10.2px">
+                    <div style="font:9px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:6.8px">Sidebar vendedor</div>
+                    <div style="display:flex;flex-direction:column;gap:1px;font-size:13.5px">
+                      <span style="padding:6.8px;background:color-mix(in srgb,var(--color-accent) 18%,transparent);border-left:2px solid var(--color-accent)">Mis productos</span>
+                      <span style="padding:6.8px;border-left:2px solid transparent">Publicar</span>
+                      <span style="padding:6.8px;border-left:2px solid transparent">Pedidos</span>
+                    </div>
+                  </div>
+                  <div style="flex:1;min-width:160px;border:1px solid var(--color-divider);padding:20.4px;display:grid;place-items:center;text-align:center">
+                    <div>
+                      <div style="font:9px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:10.2px">Layout auth</div>
+                      <div style="font-family:var(--font-heading);font-weight:600;font-size:17px;color:var(--color-accent-700)">MERCADOTECH</div>
+                      <div style="border:1px solid var(--color-divider);height:34px;margin-top:10.2px"></div>
+                      <div style="border:1px solid var(--color-divider);height:34px;margin-top:6.8px"></div>
+                      <div style="background:var(--color-accent);height:34px;margin-top:10.2px"></div>
+                      <div style="font:9px/1.6 ui-monospace,Menlo,monospace;color:var(--color-neutral-600);padding-top:6.8px">centrado · sin navbar</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="border-top:1px solid var(--color-divider);padding-top:13.6px;font:10.5px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">
+              <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Notas</div>
+              <div>· <code>(store)</code> usa Navbar + Sheet; <code>(seller)</code> usa Sidebar colapsable; <code>(auth)</code> no monta navbar.</div>
+              <div>· “Panel vendedor” aparece en el menú de usuario solo si el perfil tiene rol vendedor; anónimo ve “Ingresar”.</div>
+              <div>· El contador del carrito es un Badge sobre el ícono, con <code>aria-label="3 ítems en el carrito"</code>.</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isCategoria }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Categoría">
+            <div style="border-bottom:1px solid var(--color-divider);padding:13.6px 20.4px;display:flex;gap:13.6px;align-items:center">
+              <span style="font-family:var(--font-heading);font-weight:600;font-size:19px;color:var(--color-accent-700)">MERCADOTECH</span>
+              <div style="flex:1;min-width:140px;border:1px solid var(--color-divider);padding:8px 10.2px;font-size:13.5px;color:var(--color-neutral-600)">Buscar…</div>
+              <span style="border:1px solid var(--color-divider);padding:6.8px 10.2px;font-size:13px">Carrito · 3</span>
+            </div>
+            <div style="padding:20.4px 20.4px 0">
+              <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.1em;color:var(--color-neutral-600)">Inicio / Computación / <span style="color:var(--color-text)">Laptops</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10.2px;padding-top:6.8px">
+                <div>
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:32px;line-height:1.05">Laptops</div>
+                  <div style="font:10.5px/1.6 ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">4 productos · ordenado por precio ascendente</div>
+                </div>
+                <div style="display:flex;gap:6.8px;flex-wrap:wrap">
+                  <span style="font:9.5px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--color-accent);color:var(--color-accent-900);padding:4px 7px;background:color-mix(in srgb,var(--color-accent) 12%,transparent)">Nuevo ✕</span>
+                  <span style="font:9.5px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--color-accent);color:var(--color-accent-900);padding:4px 7px;background:color-mix(in srgb,var(--color-accent) 12%,transparent)">Hasta S/ 3,500 ✕</span>
+                </div>
+              </div>
+            </div>
+            <div style="padding:20.4px">
+              <sc-if value="{{ showData }}" hint-placeholder-val="{{ true }}">
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20.4px">
+                  <sc-for list="{{ laptops }}" as="p" hint-placeholder-count="4">
+                    <article style="position:relative;border:1px solid var(--color-divider);padding:13.6px;display:flex;flex-direction:column;gap:8px" style-hover="border-color:var(--color-accent)">
+                      <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                      <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                      <div style="aspect-ratio:4/3;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 5px,transparent 5px 11px);display:grid;place-items:center;text-align:center;padding:6.8px">
+                        <span style="font:9.5px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--color-accent-700)">{{ p.img }}</span>
+                      </div>
+                      <div style="display:flex;gap:5px;flex-wrap:wrap">
+                        <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--color-divider);padding:2px 5px;color:var(--color-neutral-700)">{{ p.brand }}</span>
+                        <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:2px 5px;background:{{ p.condBg }};color:{{ p.condFg }}">{{ p.cond }}</span>
+                      </div>
+                      <div style="font-size:14px;line-height:1.35;min-height:2.7em">{{ p.name }}</div>
+                      <div style="font-family:var(--font-heading);font-weight:600;font-size:23px;line-height:1">{{ p.price }}</div>
+                      <div style="display:flex;justify-content:space-between;font:9.5px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)"><span>★ {{ p.rating }} · {{ p.reviews }}</span><span style="color:{{ p.stockFg }}">{{ p.stock }}</span></div>
+                    </article>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20.4px">
+                  <sc-for list="{{ eight }}" as="k" hint-placeholder-count="8">
+                    <div style="border:1px solid var(--color-divider);padding:13.6px;display:flex;flex-direction:column;gap:8px">
+                      <div style="aspect-ratio:4/3;background:var(--color-neutral-200)"></div>
+                      <div style="height:11px;width:52px;background:var(--color-neutral-200)"></div>
+                      <div style="height:13px;background:var(--color-neutral-200)"></div>
+                      <div style="height:21px;width:56%;background:var(--color-neutral-300)"></div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid var(--color-divider);padding:54.4px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                  <div style="width:88px;height:88px;border:1px solid var(--color-accent);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 5px,transparent 5px 11px)"></div>
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">Esta categoría aún no tiene productos</div>
+                  <p style="margin:0;max-width:44ch;line-height:1.55;color:var(--color-neutral-700);font-size:14px">Mira las categorías con stock disponible o vuelve más tarde.</p>
+                  <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:10.2px 20.4px;font-family:var(--font-body);font-size:14px;cursor:pointer">Ver todas las categorías</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid var(--color-divider);padding:54.4px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                  <div style="width:88px;height:88px;border:1px solid var(--color-neutral-500);display:grid;place-items:center;font-family:var(--font-heading);font-size:38px;color:var(--color-neutral-600)">!</div>
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">No pudimos cargar esta categoría</div>
+                  <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:10.2px 20.4px;font-family:var(--font-body);font-size:14px;cursor:pointer">Reintentar</button>
+                </div>
+              </sc-if>
+            </div>
+            <div style="border-top:1px solid var(--color-divider);padding:13.6px 20.4px;font:10.5px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">
+              <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Reutiliza · notas</div>
+              <div>· Idéntica al grid de Home; solo cambia el encabezado de contexto (breadcrumb + título + conteo) y los chips de filtro activo.</div>
+              <div>· Chips = Badge outline con acción de quitar; el panel de filtros completo vive en el Sheet en móvil.</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isBusqueda }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Búsqueda">
+            <div style="border-bottom:1px solid var(--color-divider);padding:13.6px 20.4px;display:flex;gap:13.6px;align-items:center">
+              <span style="font-family:var(--font-heading);font-weight:600;font-size:19px;color:var(--color-accent-700)">MERCADOTECH</span>
+              <div style="flex:1;min-width:140px;display:flex;border:1px solid var(--color-accent)">
+                <span style="padding:8px 10.2px;font-size:13.5px;flex:1">ryzen</span>
+                <span style="background:var(--color-accent);color:#fff;padding:8px 13.6px;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;display:flex;align-items:center">BUSCAR</span>
+              </div>
+              <span style="border:1px solid var(--color-divider);padding:6.8px 10.2px;font-size:13px">Carrito · 3</span>
+            </div>
+            <div style="padding:20.4px">
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:28px;line-height:1.1">Resultados para «ryzen»</div>
+              <div style="font:10.5px/1.6 ui-monospace,Menlo,monospace;color:var(--color-neutral-600);padding-bottom:20.4px">2 productos · busca en título, marca y descripción</div>
+              <sc-if value="{{ showData }}" hint-placeholder-val="{{ true }}">
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20.4px">
+                  <sc-for list="{{ ryzen }}" as="p" hint-placeholder-count="2">
+                    <article style="position:relative;border:1px solid var(--color-divider);padding:13.6px;display:flex;flex-direction:column;gap:8px">
+                      <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                      <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                      <div style="aspect-ratio:4/3;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 5px,transparent 5px 11px);display:grid;place-items:center;text-align:center;padding:6.8px">
+                        <span style="font:9.5px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--color-accent-700)">{{ p.img }}</span>
+                      </div>
+                      <div style="display:flex;gap:5px"><span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--color-divider);padding:2px 5px;color:var(--color-neutral-700)">{{ p.brand }}</span></div>
+                      <div style="font-size:14px;line-height:1.35;min-height:2.7em">{{ p.name }}</div>
+                      <div style="font-family:var(--font-heading);font-weight:600;font-size:23px;line-height:1">{{ p.price }}</div>
+                    </article>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid var(--color-divider);padding:54.4px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                  <div style="width:88px;height:88px;border:1px solid var(--color-accent);display:grid;place-items:center;font-family:var(--font-heading);font-size:34px;color:var(--color-accent-700);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 5px,transparent 5px 11px)">?</div>
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">Sin resultados para «rtx 4090»</div>
+                  <p style="margin:0;max-width:46ch;line-height:1.55;color:var(--color-neutral-700);font-size:14px">Revisa la escritura o prueba con términos más generales, como “tarjeta de video”.</p>
+                  <div style="display:flex;gap:6.8px;flex-wrap:wrap;justify-content:center">
+                    <span style="font:9.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--color-divider);padding:6px 9px">laptop</span>
+                    <span style="font:9.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--color-divider);padding:6px 9px">ryzen</span>
+                    <span style="font:9.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--color-divider);padding:6px 9px">audífonos</span>
+                  </div>
+                  <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:10.2px 20.4px;font-family:var(--font-body);font-size:14px;cursor:pointer">Explorar el catálogo</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20.4px">
+                  <sc-for list="{{ three }}" as="k" hint-placeholder-count="3">
+                    <div style="border:1px solid var(--color-divider);padding:13.6px;display:flex;flex-direction:column;gap:8px">
+                      <div style="aspect-ratio:4/3;background:var(--color-neutral-200)"></div>
+                      <div style="height:13px;background:var(--color-neutral-200)"></div>
+                      <div style="height:21px;width:56%;background:var(--color-neutral-300)"></div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid var(--color-divider);padding:54.4px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                  <div style="width:88px;height:88px;border:1px solid var(--color-neutral-500);display:grid;place-items:center;font-family:var(--font-heading);font-size:38px;color:var(--color-neutral-600)">!</div>
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">La búsqueda falló</div>
+                  <p style="margin:0;font-size:14px;color:var(--color-neutral-700)">Tu término se mantiene en el campo.</p>
+                  <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:10.2px 20.4px;font-family:var(--font-body);font-size:14px;cursor:pointer">Reintentar</button>
+                </div>
+              </sc-if>
+            </div>
+            <div style="border-top:1px solid var(--color-divider);padding:13.6px 20.4px;font:10.5px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">
+              <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Reutiliza · notas</div>
+              <div>· Mismo grid y mismos filtros que Home; el término se conserva en el Input y en la URL (<code>?q=</code>).</div>
+              <div>· El vacío de búsqueda ofrece términos sugeridos — no es el mismo EmptyState que “categoría sin productos”.</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isFavoritos }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Favoritos">
+            <div style="border-bottom:1px solid var(--color-divider);padding:13.6px 20.4px;display:flex;gap:13.6px;align-items:center">
+              <span style="font-family:var(--font-heading);font-weight:600;font-size:19px;color:var(--color-accent-700)">MERCADOTECH</span>
+              <span style="font:10px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">/ favoritos</span>
+            </div>
+            <div style="padding:20.4px">
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:28px">Favoritos</div>
+              <div style="font:10.5px/1.6 ui-monospace,Menlo,monospace;color:var(--color-neutral-600);padding-bottom:20.4px">3 productos guardados</div>
+              <sc-if value="{{ showData }}" hint-placeholder-val="{{ true }}">
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20.4px">
+                  <sc-for list="{{ favs }}" as="p" hint-placeholder-count="3">
+                    <article style="position:relative;border:1px solid var(--color-divider);padding:13.6px;display:flex;flex-direction:column;gap:8px">
+                      <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                      <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                      <div style="aspect-ratio:4/3;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 5px,transparent 5px 11px);display:grid;place-items:center;text-align:center;padding:6.8px">
+                        <span style="font:9.5px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--color-accent-700)">{{ p.img }}</span>
+                      </div>
+                      <div style="font-size:14px;line-height:1.35;min-height:2.7em">{{ p.name }}</div>
+                      <div style="font-family:var(--font-heading);font-weight:600;font-size:23px;line-height:1">{{ p.price }}</div>
+                      <div style="display:flex;gap:6.8px">
+                        <button type="button" style="flex:1;background:var(--color-accent);color:#fff;border:0;padding:8px;font-family:var(--font-body);font-size:13px;cursor:pointer">Al carrito</button>
+                        <button type="button" aria-label="Quitar de favoritos" style="border:1px solid var(--color-divider);background:transparent;color:inherit;width:34px;cursor:pointer">♥</button>
+                      </div>
+                    </article>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid var(--color-divider);padding:54.4px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                  <div style="width:88px;height:88px;border:1px solid var(--color-accent);display:grid;place-items:center;font-size:34px;color:var(--color-accent);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 5px,transparent 5px 11px)">♡</div>
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">Todavía no guardaste nada</div>
+                  <p style="margin:0;max-width:44ch;line-height:1.55;color:var(--color-neutral-700);font-size:14px">Toca el corazón en cualquier producto para tenerlo a mano.</p>
+                  <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:10.2px 20.4px;font-family:var(--font-body);font-size:14px;cursor:pointer">Explorar productos</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20.4px">
+                  <sc-for list="{{ three }}" as="k" hint-placeholder-count="3">
+                    <div style="border:1px solid var(--color-divider);padding:13.6px;display:flex;flex-direction:column;gap:8px">
+                      <div style="aspect-ratio:4/3;background:var(--color-neutral-200)"></div>
+                      <div style="height:13px;background:var(--color-neutral-200)"></div>
+                      <div style="height:21px;width:56%;background:var(--color-neutral-300)"></div>
+                      <div style="height:30px;background:var(--color-neutral-200)"></div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid var(--color-divider);padding:54.4px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                  <div style="width:88px;height:88px;border:1px solid var(--color-neutral-500);display:grid;place-items:center;font-family:var(--font-heading);font-size:38px;color:var(--color-neutral-600)">!</div>
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">No pudimos cargar tus favoritos</div>
+                  <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:10.2px 20.4px;font-family:var(--font-body);font-size:14px;cursor:pointer">Reintentar</button>
+                </div>
+              </sc-if>
+            </div>
+            <div style="border-top:1px solid var(--color-divider);padding:13.6px 20.4px;font:10.5px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">
+              <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Reutiliza · notas</div>
+              <div>· Card + ProductImage + Price; añade acción directa “Al carrito” y Button icon de quitar (toggle optimista).</div>
+              <div>· Si el producto pasó a <code>is_active=false</code> la tarjeta se muestra atenuada con nota “ya no disponible”.</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isDetalle }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Detalle de producto">
+            <div style="border-bottom:1px solid var(--color-divider);padding:13.6px 20.4px;display:flex;gap:13.6px;align-items:center">
+              <span style="font-family:var(--font-heading);font-weight:600;font-size:19px;color:var(--color-accent-700)">MERCADOTECH</span>
+              <div style="flex:1;min-width:140px;border:1px solid var(--color-divider);padding:8px 10.2px;font-size:13.5px;color:var(--color-neutral-600)">Buscar…</div>
+              <span style="border:1px solid var(--color-divider);padding:6.8px 10.2px;font-size:13px">Carrito · 3</span>
+            </div>
+
+            <sc-if value="{{ showData }}" hint-placeholder-val="{{ true }}">
+              <div style="padding:20.4px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:27.2px;align-items:start">
+                <div style="display:grid;grid-template-columns:64px minmax(0,1fr);gap:13.6px">
+                  <div role="tablist" aria-label="Miniaturas" style="display:flex;flex-direction:column;gap:6.8px">
+                    <button type="button" aria-selected="true" style="aspect-ratio:1;border:1px solid var(--color-accent);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 22%,transparent) 0 4px,transparent 4px 9px);cursor:pointer;font:8px ui-monospace,Menlo,monospace;color:var(--color-accent-900)">01</button>
+                    <button type="button" aria-selected="false" style="aspect-ratio:1;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 10%,transparent) 0 4px,transparent 4px 9px);cursor:pointer;font:8px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">02</button>
+                    <button type="button" aria-selected="false" style="aspect-ratio:1;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 10%,transparent) 0 4px,transparent 4px 9px);cursor:pointer;font:8px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">03</button>
+                    <button type="button" aria-selected="false" style="aspect-ratio:1;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 10%,transparent) 0 4px,transparent 4px 9px);cursor:pointer;font:8px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">04</button>
+                    <div style="font:8.5px/1.4 ui-monospace,Menlo,monospace;color:var(--color-neutral-600);text-align:center">← → tab</div>
+                  </div>
+                  <div style="position:relative;aspect-ratio:1;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 6px,transparent 6px 13px);display:grid;place-items:center;text-align:center;padding:20.4px;min-width:0">
+                    <div>
+                      <div style="font-family:var(--font-heading);font-weight:600;font-size:26px;color:var(--color-accent-900)">Lenovo</div>
+                      <div style="font:10px/1.6 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--color-accent-700)">IdeaPad Slim 3 · foto 1 de 4</div>
+                    </div>
+                    <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                    <i style="position:absolute;right:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                    <i style="position:absolute;left:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                    <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                  </div>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:13.6px;min-width:0">
+                  <div style="display:flex;gap:6.8px;flex-wrap:wrap">
+                    <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--color-divider);padding:3px 6px;color:var(--color-neutral-700)">Lenovo</span>
+                    <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:3px 6px;background:var(--color-accent);color:#fff">Nuevo</span>
+                    <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:3px 6px;color:var(--color-neutral-600)">Laptops</span>
+                  </div>
+                  <h1 style="margin:0;font-family:var(--font-heading);font-weight:600;font-size:34px;line-height:1.08;text-wrap:pretty">IdeaPad Slim 3 15" Ryzen 5 7520U · 16GB · 512GB SSD</h1>
+                  <div style="font-size:19px;letter-spacing:.08em;color:var(--color-accent)">★★★★<span style="color:var(--color-neutral-400)">★</span> <span style="font:11px ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">4.6 · 18 reseñas</span></div>
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:44px;line-height:1">S/ 2,199.00</div>
+
+                  <div style="position:relative;border:1px solid var(--color-divider);padding:17px;display:flex;flex-direction:column;gap:13.6px">
+                    <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                    <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                    <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">12 disponibles · vendido por MercadoTech Store</div>
+                    <div style="display:flex;gap:10.2px;align-items:center;flex-wrap:wrap">
+                      <label style="font-size:13px;display:flex;flex-direction:column;gap:5px">Cantidad
+                        <span style="display:flex;border:1px solid var(--color-divider)">
+                          <button type="button" aria-label="Menos" style="border:0;background:transparent;color:inherit;width:38px;height:44px;font-size:17px;cursor:pointer">−</button>
+                          <span style="width:44px;display:grid;place-items:center;border-left:1px solid var(--color-divider);border-right:1px solid var(--color-divider);font:13px ui-monospace,Menlo,monospace">1</span>
+                          <button type="button" aria-label="Más" style="border:0;background:transparent;color:inherit;width:38px;height:44px;font-size:17px;cursor:pointer">+</button>
+                        </span>
+                      </label>
+                    </div>
+                    <div style="display:flex;gap:10.2px">
+                      <button type="button" style="flex:1;background:var(--color-accent);color:#fff;border:0;padding:14px;font-family:var(--font-body);font-size:15.5px;cursor:pointer;min-height:44px" style-hover="background:var(--color-accent-600)">Agregar al carrito</button>
+                      <button type="button" aria-label="Guardar en favoritos" style="border:1px solid var(--color-divider);background:transparent;color:inherit;width:52px;min-height:44px;font-size:19px;cursor:pointer">♡</button>
+                    </div>
+                    <div style="font:10px/1.6 ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">El pago del checkout es simulado: no se realiza ningún cargo.</div>
+                  </div>
+
+                  <div style="border:1px dashed var(--color-neutral-500);padding:13.6px;display:flex;flex-direction:column;gap:8px">
+                    <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Variante · stock 0 (Western Digital SSD Blue 1TB)</div>
+                    <div style="display:flex;gap:10.2px;align-items:center;flex-wrap:wrap">
+                      <button type="button" disabled="disabled" aria-describedby="motivo-stock" style="background:var(--color-accent);color:#fff;border:0;padding:12px 20.4px;font-family:var(--font-body);font-size:15px;opacity:.45;cursor:not-allowed;min-height:44px">Agregar al carrito</button>
+                      <span id="motivo-stock" style="font-size:13px;color:var(--color-neutral-700);max-width:34ch">Sin stock por ahora. El producto sigue publicado; te avisamos cuando el vendedor reponga.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="padding:0 20.4px 20.4px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:27.2px">
+                <section>
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--color-divider);padding-bottom:6.8px">
+                    <div style="font-family:var(--font-heading);font-weight:600;font-size:22px">Preguntas</div>
+                    <span style="font:10px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">2</span>
+                  </div>
+                  <sc-for list="{{ qa }}" as="q" hint-placeholder-count="2">
+                    <div style="padding:13.6px 0;border-bottom:1px solid var(--color-divider)">
+                      <div style="display:flex;gap:8px;align-items:baseline">
+                        <span style="font:9px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Usuario</span>
+                        <span style="font:9px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">{{ q.date }}</span>
+                      </div>
+                      <div style="font-size:14.5px;line-height:1.5;padding-top:3.4px">{{ q.q }}</div>
+                      <div style="border-left:2px solid var(--color-accent);margin-top:8px;padding-left:10.2px">
+                        <div style="font:9px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Respuesta del vendedor</div>
+                        <div style="font-size:14px;line-height:1.5;color:var(--color-neutral-700)">{{ q.a }}</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <div style="padding-top:13.6px;display:flex;flex-direction:column;gap:6.8px">
+                    <label style="font-size:13px;display:flex;flex-direction:column;gap:5px">Tu pregunta
+                      <textarea rows="2" placeholder="¿Incluye Windows preinstalado?" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:9px;font-family:var(--font-body);font-size:14px;resize:vertical"></textarea>
+                    </label>
+                    <button type="button" style="align-self:flex-start;background:var(--color-accent);color:#fff;border:0;padding:10px 17px;font-family:var(--font-body);font-size:14px;cursor:pointer">Preguntar</button>
+                  </div>
+                </section>
+
+                <section>
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--color-divider);padding-bottom:6.8px">
+                    <div style="font-family:var(--font-heading);font-weight:600;font-size:22px">Reseñas</div>
+                    <span style="font:10px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">4.6 · 18</span>
+                  </div>
+                  <sc-for list="{{ reviews }}" as="r" hint-placeholder-count="2">
+                    <div style="padding:13.6px 0;border-bottom:1px solid var(--color-divider)">
+                      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                        <span style="font:9px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:3px 6px;background:color-mix(in srgb,var(--color-accent) 18%,transparent);color:var(--color-accent-900)">Comprador verificado</span>
+                        <span style="font:9px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">{{ r.date }}</span>
+                        <span style="color:var(--color-accent);letter-spacing:.08em">{{ r.stars }}</span>
+                      </div>
+                      <div style="font-size:14.5px;line-height:1.5;padding-top:5px">{{ r.text }}</div>
+                    </div>
+                  </sc-for>
+                  <div style="border:1px solid var(--color-divider);padding:13.6px;margin-top:13.6px;display:flex;flex-direction:column;gap:8px">
+                    <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Formulario condicional · visible solo si compraste este producto</div>
+                    <div role="radiogroup" aria-label="Tu puntaje" style="display:flex;gap:5px">
+                      <button type="button" aria-checked="true" style="border:1px solid var(--color-accent);background:var(--color-accent);color:#fff;width:36px;height:36px;cursor:pointer">★</button>
+                      <button type="button" aria-checked="true" style="border:1px solid var(--color-accent);background:var(--color-accent);color:#fff;width:36px;height:36px;cursor:pointer">★</button>
+                      <button type="button" aria-checked="true" style="border:1px solid var(--color-accent);background:var(--color-accent);color:#fff;width:36px;height:36px;cursor:pointer">★</button>
+                      <button type="button" aria-checked="true" style="border:1px solid var(--color-accent);background:var(--color-accent);color:#fff;width:36px;height:36px;cursor:pointer">★</button>
+                      <button type="button" aria-checked="false" style="border:1px solid var(--color-divider);background:transparent;color:var(--color-neutral-500);width:36px;height:36px;cursor:pointer">★</button>
+                    </div>
+                    <textarea rows="2" placeholder="¿Qué tal te resultó?" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:9px;font-family:var(--font-body);font-size:14px;resize:vertical"></textarea>
+                    <button type="button" style="align-self:flex-start;background:var(--color-accent);color:#fff;border:0;padding:10px 17px;font-family:var(--font-body);font-size:14px;cursor:pointer">Publicar reseña</button>
+                  </div>
+                </section>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:20.4px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:27.2px">
+                <div style="display:grid;grid-template-columns:64px minmax(0,1fr);gap:13.6px">
+                  <div style="display:flex;flex-direction:column;gap:6.8px">
+                    <div style="aspect-ratio:1;background:var(--color-neutral-200)"></div>
+                    <div style="aspect-ratio:1;background:var(--color-neutral-200)"></div>
+                    <div style="aspect-ratio:1;background:var(--color-neutral-200)"></div>
+                    <div style="aspect-ratio:1;background:var(--color-neutral-200)"></div>
+                  </div>
+                  <div style="aspect-ratio:1;background:var(--color-neutral-200)"></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10.2px">
+                  <div style="height:11px;width:120px;background:var(--color-neutral-200)"></div>
+                  <div style="height:26px;background:var(--color-neutral-200)"></div>
+                  <div style="height:26px;width:70%;background:var(--color-neutral-200)"></div>
+                  <div style="height:13px;width:140px;background:var(--color-neutral-200)"></div>
+                  <div style="height:38px;width:220px;background:var(--color-neutral-300)"></div>
+                  <div style="height:132px;background:var(--color-neutral-200);margin-top:6.8px"></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:68px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                <div style="width:88px;height:88px;border:1px solid var(--color-neutral-500);display:grid;place-items:center;font-family:var(--font-heading);font-size:34px;color:var(--color-neutral-600)">404</div>
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:26px">Este producto ya no está publicado</div>
+                <p style="margin:0;max-width:46ch;line-height:1.55;color:var(--color-neutral-700);font-size:14.5px">El vendedor lo desactivó. Puedes ver alternativas en la misma categoría.</p>
+                <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:13.6px 27.2px;font-family:var(--font-body);font-size:15px;cursor:pointer">Ver Laptops</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:68px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                <div style="width:88px;height:88px;border:1px solid var(--color-neutral-500);display:grid;place-items:center;font-family:var(--font-heading);font-size:38px;color:var(--color-neutral-600)">!</div>
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:26px">No pudimos cargar el producto</div>
+                <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:13.6px 27.2px;font-family:var(--font-body);font-size:15px;cursor:pointer">Reintentar</button>
+              </div>
+            </sc-if>
+
+            <div style="border-top:1px solid var(--color-divider);padding:13.6px 20.4px;font:10.5px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">
+              <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Reutiliza · notas</div>
+              <div>· Galería = Tabs (roving tabindex): miniaturas son <code>role=tab</code>, ← → cambian foto, Enter la fija. Nunca solo mouse.</div>
+              <div>· Info: ConditionBadge, Price, RatingStars lectura. Caja de compra: Input numérico + Button primario + Button icon favorito.</div>
+              <div>· Preguntas muestran “Usuario” y reseñas “Comprador verificado” — RLS no expone nombres de terceros.</div>
+              <div>· Stock 0: el Button queda disabled con el motivo visible junto a él y ligado por <code>aria-describedby</code>.</div>
+              <div>· El formulario de reseña solo se monta si existe un pedido entregado con este producto.</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPedidos }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Mis pedidos">
+            <div style="border-bottom:1px solid var(--color-divider);padding:13.6px 20.4px;display:flex;gap:13.6px;align-items:center">
+              <span style="font-family:var(--font-heading);font-weight:600;font-size:19px;color:var(--color-accent-700)">MERCADOTECH</span>
+              <span style="font:10px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">/ pedidos</span>
+            </div>
+            <div style="padding:20.4px">
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:28px">Mis pedidos</div>
+              <div style="font:10.5px/1.6 ui-monospace,Menlo,monospace;color:var(--color-neutral-600);padding-bottom:13.6px">5 pedidos</div>
+              <sc-if value="{{ showData }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:13.6px">
+                  <sc-for list="{{ orders }}" as="o" hint-placeholder-count="5">
+                    <article style="position:relative;border:1px solid var(--color-divider);padding:13.6px;display:grid;grid-template-columns:1fr auto;gap:13.6px;align-items:start">
+                      <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                      <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                      <div style="min-width:0">
+                        <div style="display:flex;gap:10.2px;align-items:center;flex-wrap:wrap">
+                          <span style="font:11px ui-monospace,Menlo,monospace;letter-spacing:.08em">#{{ o.id }}</span>
+                          <span style="font:9.5px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">{{ o.date }}</span>
+                          <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};border:{{ o.badgeBorder }}">{{ o.status }}</span>
+                        </div>
+                        <div style="font-size:14px;line-height:1.5;padding-top:6.8px;color:var(--color-neutral-700)">{{ o.items }}</div>
+                      </div>
+                      <div style="text-align:right;display:flex;flex-direction:column;gap:6.8px;align-items:flex-end">
+                        <div style="font-family:var(--font-heading);font-weight:600;font-size:21px;line-height:1">{{ o.total }}</div>
+                        <button type="button" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:6.8px 13.6px;font-family:var(--font-body);font-size:13px;cursor:pointer;white-space:nowrap">Ver detalle</button>
+                        <sc-if value="{{ o.cancelable }}" hint-placeholder-val="{{ false }}">
+                          <button type="button" style="border:0;background:transparent;color:var(--color-accent-700);padding:0;font-family:var(--font-body);font-size:13px;cursor:pointer;text-decoration:underline">Cancelar pedido</button>
+                        </sc-if>
+                      </div>
+                    </article>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:13.6px">
+                  <sc-for list="{{ three }}" as="k" hint-placeholder-count="3">
+                    <div style="border:1px solid var(--color-divider);padding:13.6px;display:grid;grid-template-columns:1fr 110px;gap:13.6px">
+                      <div style="display:flex;flex-direction:column;gap:8px"><div style="height:11px;width:180px;background:var(--color-neutral-200)"></div><div style="height:13px;background:var(--color-neutral-200)"></div></div>
+                      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end"><div style="height:20px;width:90px;background:var(--color-neutral-300)"></div><div style="height:28px;width:100px;background:var(--color-neutral-200)"></div></div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid var(--color-divider);padding:54.4px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                  <div style="width:88px;height:88px;border:1px solid var(--color-accent);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 5px,transparent 5px 11px)"></div>
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">Aún no hiciste ningún pedido</div>
+                  <p style="margin:0;max-width:44ch;line-height:1.55;color:var(--color-neutral-700);font-size:14px">Cuando compres algo lo verás acá con su estado de envío.</p>
+                  <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:10.2px 20.4px;font-family:var(--font-body);font-size:14px;cursor:pointer">Explorar productos</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid var(--color-divider);padding:54.4px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                  <div style="width:88px;height:88px;border:1px solid var(--color-neutral-500);display:grid;place-items:center;font-family:var(--font-heading);font-size:38px;color:var(--color-neutral-600)">!</div>
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">No pudimos cargar tus pedidos</div>
+                  <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:10.2px 20.4px;font-family:var(--font-body);font-size:14px;cursor:pointer">Reintentar</button>
+                </div>
+              </sc-if>
+            </div>
+            <div style="border-top:1px solid var(--color-divider);padding:13.6px 20.4px;font:10.5px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">
+              <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Reutiliza · notas</div>
+              <div>· Card por pedido + OrderStatusBadge + Price. “Cancelar” solo se renderiza si el estado es pendiente; abre Dialog de confirmación.</div>
+              <div>· Los cinco estados del seed están representados, incluido el cancelado con borde discontinuo.</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPedido }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Detalle de pedido">
+            <div style="border-bottom:1px solid var(--color-divider);padding:13.6px 20.4px;display:flex;gap:13.6px;align-items:center">
+              <span style="font-family:var(--font-heading);font-weight:600;font-size:19px;color:var(--color-accent-700)">MERCADOTECH</span>
+              <span style="font:10px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">/ pedidos / 7f3a91</span>
+            </div>
+            <sc-if value="{{ showData }}" hint-placeholder-val="{{ true }}">
+              <div style="padding:20.4px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:27.2px;align-items:start">
+                <div style="min-width:0">
+                  <div style="display:flex;gap:10.2px;align-items:center;flex-wrap:wrap">
+                    <div style="font-family:var(--font-heading);font-weight:600;font-size:30px">Pedido #7f3a91</div>
+                    <span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;border:1px solid var(--color-neutral-400);color:var(--color-neutral-800)">Pendiente</span>
+                  </div>
+                  <div style="font:10.5px/1.6 ui-monospace,Menlo,monospace;color:var(--color-neutral-600);padding-bottom:13.6px">Creado el 18 ago 2026, 14:32 · pago simulado</div>
+
+                  <div style="display:flex;gap:0;align-items:center;padding:13.6px 0 20.4px">
+                    <span style="font:9px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:5px 8px;background:var(--color-accent);color:#fff">Pendiente</span>
+                    <span style="height:1px;background:var(--color-divider);flex:1"></span>
+                    <span style="font:9px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:5px 8px;border:1px solid var(--color-divider);color:var(--color-neutral-600)">Pagado</span>
+                    <span style="height:1px;background:var(--color-divider);flex:1"></span>
+                    <span style="font:9px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:5px 8px;border:1px solid var(--color-divider);color:var(--color-neutral-600)">Enviado</span>
+                    <span style="height:1px;background:var(--color-divider);flex:1"></span>
+                    <span style="font:9px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:5px 8px;border:1px solid var(--color-divider);color:var(--color-neutral-600)">Entregado</span>
+                  </div>
+
+                  <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600);padding-bottom:6.8px">Ítems · precio y título al momento de la compra</div>
+                  <div style="display:flex;flex-direction:column;gap:1px">
+                    <sc-for list="{{ orderItems }}" as="i" hint-placeholder-count="2">
+                      <div style="border:1px solid var(--color-divider);padding:10.2px;display:grid;grid-template-columns:64px 1fr auto;gap:13.6px;align-items:center">
+                        <div style="aspect-ratio:1;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 4px,transparent 4px 9px)"></div>
+                        <div>
+                          <div style="font-size:14px;line-height:1.4">{{ i.name }}</div>
+                          <div style="font:9.5px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">{{ i.qty }} × {{ i.unit }} · snapshot</div>
+                        </div>
+                        <div style="font-family:var(--font-heading);font-weight:600;font-size:18px">{{ i.line }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <aside style="display:flex;flex-direction:column;gap:13.6px">
+                  <div style="border:1px solid var(--color-divider);padding:17px;display:flex;flex-direction:column;gap:8px">
+                    <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Resumen</div>
+                    <div style="display:flex;justify-content:space-between;font-size:14px"><span>Subtotal (2)</span><span>S/ 1,519.80</span></div>
+                    <div style="display:flex;justify-content:space-between;font-size:14px"><span>Envío</span><span>S/ 0.00</span></div>
+                    <div style="border-top:1px solid var(--color-divider);padding-top:8px;display:flex;justify-content:space-between;align-items:baseline">
+                      <span style="font:10px ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase">Total</span>
+                      <span style="font-family:var(--font-heading);font-weight:600;font-size:26px;line-height:1">S/ 1,519.80</span>
+                    </div>
+                  </div>
+                  <button type="button" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:12px;font-family:var(--font-body);font-size:14px;cursor:pointer;min-height:44px">Cancelar pedido</button>
+                  <div style="font:10px/1.6 ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">Disponible solo mientras el pedido esté pendiente. Al pasar a pagado el botón desaparece, no se deshabilita.</div>
+                </aside>
+              </div>
+            </sc-if>
+            <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:20.4px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:27.2px">
+                <div style="display:flex;flex-direction:column;gap:10.2px">
+                  <div style="height:26px;width:240px;background:var(--color-neutral-200)"></div>
+                  <div style="height:11px;width:180px;background:var(--color-neutral-200)"></div>
+                  <div style="height:24px;background:var(--color-neutral-200);margin:10.2px 0"></div>
+                  <div style="height:84px;background:var(--color-neutral-200)"></div>
+                  <div style="height:84px;background:var(--color-neutral-200)"></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10.2px">
+                  <div style="height:120px;background:var(--color-neutral-200)"></div>
+                  <div style="height:44px;background:var(--color-neutral-300)"></div>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:68px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                <div style="width:88px;height:88px;border:1px solid var(--color-neutral-500);display:grid;place-items:center;font-family:var(--font-heading);font-size:30px;color:var(--color-neutral-600)">404</div>
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:26px">Este pedido no existe o no es tuyo</div>
+                <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:13.6px 27.2px;font-family:var(--font-body);font-size:15px;cursor:pointer">Volver a mis pedidos</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:68px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                <div style="width:88px;height:88px;border:1px solid var(--color-neutral-500);display:grid;place-items:center;font-family:var(--font-heading);font-size:38px;color:var(--color-neutral-600)">!</div>
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:26px">No pudimos cargar el pedido</div>
+                <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:13.6px 27.2px;font-family:var(--font-body);font-size:15px;cursor:pointer">Reintentar</button>
+              </div>
+            </sc-if>
+            <div style="border-top:1px solid var(--color-divider);padding:13.6px 20.4px;font:10.5px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">
+              <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Reutiliza · notas</div>
+              <div>· Los ítems muestran título y precio guardados en <code>order_items</code>, no los actuales del producto.</div>
+              <div>· El timeline es decorativo: la fuente de verdad es el estado del pedido, un solo campo.</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Login" style="padding:54.4px 27.2px;display:grid;place-items:center">
+            <div style="width:100%;max-width:380px;display:flex;flex-direction:column;gap:20.4px">
+              <div style="text-align:center">
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:24px;letter-spacing:.02em;color:var(--color-accent-700)">MERCADOTECH</div>
+                <div style="font:10px/1.6 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Tecnología con garantía en Perú</div>
+              </div>
+              <div style="position:relative;border:1px solid var(--color-divider);padding:20.4px;display:flex;flex-direction:column;gap:13.6px">
+                <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                <i style="position:absolute;right:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                <i style="position:absolute;left:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">Ingresar</div>
+                <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Correo
+                  <input type="email" placeholder="tu@correo.pe" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:11px;font-family:var(--font-body);font-size:14.5px;min-height:44px;width:100%;min-width:0" />
+                </label>
+                <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Contraseña
+                  <input type="password" placeholder="••••••••" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:11px;font-family:var(--font-body);font-size:14.5px;min-height:44px;width:100%;min-width:0" />
+                </label>
+                <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:13px;font-family:var(--font-body);font-size:15px;cursor:pointer;min-height:44px" style-hover="background:var(--color-accent-600)">Ingresar</button>
+                <div style="font-size:13.5px;text-align:center;color:var(--color-neutral-700)">¿No tienes cuenta? <a href="#registro" style="text-decoration:underline">Crear una</a></div>
+              </div>
+              <div style="font:10.5px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">
+                <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Reutiliza · notas</div>
+                <div>· Layout auth: sin navbar, tarjeta centrada de 380px. Tab: correo → contraseña → botón → enlace.</div>
+                <div>· Error de credenciales = Alert sobre el formulario, no un toast que se pierde.</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isRegistro }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Registro" style="padding:54.4px 27.2px;display:grid;place-items:center">
+            <div style="width:100%;max-width:420px;display:flex;flex-direction:column;gap:20.4px">
+              <div style="text-align:center">
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:24px;letter-spacing:.02em;color:var(--color-accent-700)">MERCADOTECH</div>
+              </div>
+              <div style="position:relative;border:1px solid var(--color-divider);padding:20.4px;display:flex;flex-direction:column;gap:13.6px">
+                <i style="position:absolute;left:-4px;top:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                <i style="position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:linear-gradient(currentColor,currentColor) center/9px 1px no-repeat,linear-gradient(currentColor,currentColor) center/1px 9px no-repeat;opacity:.35"></i>
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">Crear cuenta</div>
+                <div role="radiogroup" aria-label="Tipo de cuenta" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                  <button type="button" aria-checked="true" style="border:1px solid var(--color-accent);background:color-mix(in srgb,var(--color-accent) 14%,transparent);color:var(--color-accent-900);padding:13.6px 10.2px;text-align:left;cursor:pointer;font-family:var(--font-body)">
+                    <div style="font-family:var(--font-heading);font-weight:600;font-size:17px">Quiero comprar</div>
+                    <div style="font-size:12px;line-height:1.4">Explora el catálogo y compra</div>
+                  </button>
+                  <button type="button" aria-checked="false" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:13.6px 10.2px;text-align:left;cursor:pointer;font-family:var(--font-body)">
+                    <div style="font-family:var(--font-heading);font-weight:600;font-size:17px">Quiero vender</div>
+                    <div style="font-size:12px;line-height:1.4;color:var(--color-neutral-700)">Publica productos y gestiona pedidos</div>
+                  </button>
+                </div>
+                <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Nombre
+                  <input type="text" placeholder="José Ramírez" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:11px;font-family:var(--font-body);font-size:14.5px;min-height:44px;width:100%;min-width:0" />
+                </label>
+                <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Correo
+                  <input type="email" placeholder="tu@correo.pe" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:11px;font-family:var(--font-body);font-size:14.5px;min-height:44px;width:100%;min-width:0" />
+                </label>
+                <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Contraseña
+                  <input type="password" placeholder="Mínimo 8 caracteres" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:11px;font-family:var(--font-body);font-size:14.5px;min-height:44px;width:100%;min-width:0" />
+                  <span style="font-size:12px;color:var(--color-neutral-600)">Al menos 8 caracteres, una mayúscula y un número.</span>
+                </label>
+                <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:13px;font-family:var(--font-body);font-size:15px;cursor:pointer;min-height:44px">Crear cuenta</button>
+                <div style="font-size:13.5px;text-align:center;color:var(--color-neutral-700)">¿Ya tienes cuenta? <a href="#login" style="text-decoration:underline">Ingresar</a></div>
+              </div>
+              <div style="font:10.5px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">
+                <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Reutiliza · notas</div>
+                <div>· El selector de rol es un radiogroup de dos tarjetas — navegable con ← →, no dos botones sueltos.</div>
+                <div>· “Quiero vender” crea el perfil con rol vendedor y habilita el Sidebar vendedor tras el primer ingreso.</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isVprod }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Mis productos" style="display:flex;flex-wrap:wrap;align-items:stretch">
+            <aside style="border-right:1px solid var(--color-divider);padding:20.4px 13.6px;flex:1 1 190px;min-width:0">
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:17px;color:var(--color-accent-700);padding-bottom:13.6px">PANEL VENDEDOR</div>
+              <div style="display:flex;flex-direction:column;gap:1px;font-size:13.5px">
+                <span style="padding:8px;background:color-mix(in srgb,var(--color-accent) 18%,transparent);border-left:2px solid var(--color-accent)">Mis productos</span>
+                <span style="padding:8px;border-left:2px solid transparent;color:var(--color-neutral-700)">Publicar</span>
+                <span style="padding:8px;border-left:2px solid transparent;color:var(--color-neutral-700)">Pedidos</span>
+              </div>
+            </aside>
+            <section style="min-width:0;flex:999 1 460px">
+              <div style="padding:20.4px;display:flex;justify-content:space-between;align-items:flex-end;gap:13.6px;flex-wrap:wrap">
+                <div>
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:28px">Mis productos</div>
+                  <div style="font:10.5px/1.6 ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">6 publicados · 1 inactivo · 1 sin stock</div>
+                </div>
+                <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:11px 17px;font-family:var(--font-body);font-size:14.5px;cursor:pointer;min-height:44px">Publicar producto</button>
+              </div>
+              <div style="padding:0 20.4px 20.4px;overflow-x:auto">
+                <sc-if value="{{ showData }}" hint-placeholder-val="{{ true }}">
+                  <table style="width:100%;border-collapse:collapse;font-size:13.5px;min-width:0">
+                    <thead>
+                      <tr style="border-bottom:1px solid var(--color-divider)">
+                        <th style="text-align:left;padding:8px 10.2px 8px 0;font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Portada</th>
+                        <th style="text-align:left;padding:8px 10.2px;font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Producto</th>
+                        <th style="text-align:right;padding:8px 10.2px;font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Precio</th>
+                        <th style="text-align:right;padding:8px 10.2px;font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Stock</th>
+                        <th style="text-align:left;padding:8px 10.2px;font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Estado</th>
+                        <th style="text-align:right;padding:8px 0 8px 10.2px;font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <sc-for list="{{ sellerProducts }}" as="s" hint-placeholder-count="6">
+                        <tr style="border-bottom:1px solid var(--color-divider)">
+                          <td style="padding:10.2px 10.2px 10.2px 0"><div style="width:44px;height:44px;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 4px,transparent 4px 9px)"></div></td>
+                          <td style="padding:10.2px">
+                            <div style="line-height:1.35">{{ s.name }}</div>
+                            <div style="font:9px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">{{ s.brand }}</div>
+                          </td>
+                          <td style="padding:10.2px;text-align:right;font-family:var(--font-heading);font-weight:600;font-size:16px">{{ s.price }}</td>
+                          <td style="padding:10.2px;text-align:right;font:12px ui-monospace,Menlo,monospace;color:{{ s.stockFg }}">{{ s.stock }}</td>
+                          <td style="padding:10.2px"><span style="font:9px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;background:{{ s.stBg }};color:{{ s.stFg }};border:{{ s.stBorder }}">{{ s.state }}</span></td>
+                          <td style="padding:10.2px 0 10.2px 10.2px;text-align:right;white-space:nowrap">
+                            <button type="button" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:6px 10px;font-family:var(--font-body);font-size:12.5px;cursor:pointer">Editar</button>
+                            <button type="button" style="border:0;background:transparent;color:var(--color-accent-700);padding:6px 8px;font-family:var(--font-body);font-size:12.5px;cursor:pointer;text-decoration:underline">{{ s.toggle }}</button>
+                          </td>
+                        </tr>
+                      </sc-for>
+                    </tbody>
+                  </table>
+                </sc-if>
+                <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-direction:column;gap:1px">
+                    <div style="height:28px;background:var(--color-neutral-200)"></div>
+                    <sc-for list="{{ eight }}" as="k" hint-placeholder-count="6">
+                      <div style="display:grid;grid-template-columns:44px 1fr 90px 60px 90px 120px;gap:10.2px;align-items:center;padding:8px 0;border-bottom:1px solid var(--color-divider)">
+                        <div style="width:44px;height:44px;background:var(--color-neutral-200)"></div>
+                        <div style="height:13px;background:var(--color-neutral-200)"></div>
+                        <div style="height:13px;background:var(--color-neutral-200)"></div>
+                        <div style="height:13px;background:var(--color-neutral-200)"></div>
+                        <div style="height:18px;background:var(--color-neutral-200)"></div>
+                        <div style="height:26px;background:var(--color-neutral-200)"></div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+                  <div style="border:1px solid var(--color-divider);padding:54.4px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                    <div style="width:88px;height:88px;border:1px solid var(--color-accent);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 5px,transparent 5px 11px);display:grid;place-items:center;font-family:var(--font-heading);font-size:32px;color:var(--color-accent-700)">+</div>
+                    <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">Todavía no publicaste nada</div>
+                    <p style="margin:0;max-width:46ch;line-height:1.55;color:var(--color-neutral-700);font-size:14px">Publica tu primer producto: título, precio, stock y al menos una foto de portada.</p>
+                    <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:12px 20.4px;font-family:var(--font-body);font-size:14.5px;cursor:pointer;min-height:44px">Publicar producto</button>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+                  <div style="border:1px solid var(--color-divider);padding:54.4px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                    <div style="width:88px;height:88px;border:1px solid var(--color-neutral-500);display:grid;place-items:center;font-family:var(--font-heading);font-size:38px;color:var(--color-neutral-600)">!</div>
+                    <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">No pudimos cargar tus productos</div>
+                    <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:12px 20.4px;font-family:var(--font-body);font-size:14.5px;cursor:pointer">Reintentar</button>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="border-top:1px solid var(--color-divider);padding:13.6px 20.4px;font:10.5px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">
+                <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Reutiliza · notas</div>
+                <div>· Table + Badge de estado + Price + ProductImage 44px. En 375px las columnas Precio/Stock se pliegan bajo el título dentro de la misma fila; sin scroll lateral.</div>
+                <div>· Inactivo no se oculta de esta tabla; sí desaparece del catálogo público.</div>
+              </div>
+            </section>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isVpub }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Publicar producto" style="display:flex;flex-wrap:wrap;align-items:stretch">
+            <aside style="border-right:1px solid var(--color-divider);padding:20.4px 13.6px;flex:1 1 190px;min-width:0">
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:17px;color:var(--color-accent-700);padding-bottom:13.6px">PANEL VENDEDOR</div>
+              <div style="display:flex;flex-direction:column;gap:1px;font-size:13.5px">
+                <span style="padding:8px;border-left:2px solid transparent;color:var(--color-neutral-700)">Mis productos</span>
+                <span style="padding:8px;background:color-mix(in srgb,var(--color-accent) 18%,transparent);border-left:2px solid var(--color-accent)">Publicar</span>
+                <span style="padding:8px;border-left:2px solid transparent;color:var(--color-neutral-700)">Pedidos</span>
+              </div>
+            </aside>
+            <section style="min-width:0;padding:20.4px;flex:999 1 460px">
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:28px">Publicar producto</div>
+              <div style="font:10.5px/1.6 ui-monospace,Menlo,monospace;color:var(--color-neutral-600);padding-bottom:20.4px">Los campos marcados son obligatorios · se guarda como borrador inactivo hasta publicar</div>
+
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:27.2px;align-items:start">
+                <div style="display:flex;flex-direction:column;gap:13.6px">
+                  <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Título *
+                    <input type="text" value="Lenovo IdeaPad Slim 3 15&quot; Ryzen 5 7520U 16GB 512GB" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:11px;font-family:var(--font-body);font-size:14.5px;min-height:44px;width:100%;min-width:0" />
+                  </label>
+                  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10.2px">
+                    <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Marca *
+                      <span style="border:1px solid var(--color-divider);padding:11px;font-size:14.5px;display:flex;justify-content:space-between;gap:6.8px;min-height:44px;align-items:center;min-width:0">Lenovo <span>▾</span></span>
+                    </label>
+                    <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Categoría *
+                      <span style="border:1px solid var(--color-divider);padding:11px;font-size:14.5px;display:flex;justify-content:space-between;gap:6.8px;min-height:44px;align-items:center;min-width:0">Laptops <span>▾</span></span>
+                    </label>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10.2px">
+                    <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Precio (S/) *
+                      <input type="text" value="2199.00" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:11px;font-family:var(--font-heading);font-weight:600;font-size:15px;min-height:44px;width:100%;min-width:0" />
+                    </label>
+                    <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Stock *
+                      <input type="text" value="12" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:11px;font-family:var(--font-body);font-size:14.5px;min-height:44px;width:100%;min-width:0" />
+                    </label>
+                    <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Condición *
+                      <span style="border:1px solid var(--color-divider);padding:11px;font-size:14.5px;display:flex;justify-content:space-between;gap:6.8px;min-height:44px;align-items:center;min-width:0">Nuevo <span>▾</span></span>
+                    </label>
+                  </div>
+                  <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0">Descripción
+                    <textarea rows="4" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:11px;font-family:var(--font-body);font-size:14.5px;resize:vertical">Laptop con procesador Ryzen 5 7520U, 16GB de RAM soldada y SSD de 512GB. Incluye garantía de 12 meses y boleta electrónica.</textarea>
+                  </label>
+                  <div style="display:flex;gap:10.2px;flex-wrap:wrap">
+                    <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:13px 20.4px;font-family:var(--font-body);font-size:15px;cursor:pointer;min-height:44px">Publicar</button>
+                    <button type="button" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:12px 17px;font-family:var(--font-body);font-size:14.5px;cursor:pointer;min-height:44px">Guardar borrador</button>
+                  </div>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:10.2px">
+                  <div style="font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Galería · arrastra para reordenar</div>
+                  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10.2px">
+                    <div style="position:relative;border:1px solid var(--color-accent);padding:6.8px;background:color-mix(in srgb,var(--color-accent) 8%,transparent)">
+                      <div style="aspect-ratio:1;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 18%,transparent) 0 5px,transparent 5px 11px);display:grid;place-items:center;font:9px ui-monospace,Menlo,monospace;color:var(--color-accent-900)">01</div>
+                      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:5px">
+                        <span style="font:8.5px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;background:var(--color-accent);color:#fff;padding:2px 5px">Portada</span>
+                        <span style="font:11px ui-monospace,Menlo,monospace;cursor:grab" aria-hidden="true">⠿</span>
+                      </div>
+                      <div style="display:flex;gap:3px;padding-top:5px">
+                        <button type="button" aria-label="Mover a la izquierda" disabled="disabled" style="flex:1;border:1px solid var(--color-divider);background:transparent;color:inherit;font-size:12px;padding:4px;opacity:.4">←</button>
+                        <button type="button" aria-label="Mover a la derecha" style="flex:1;border:1px solid var(--color-divider);background:transparent;color:inherit;font-size:12px;padding:4px;cursor:pointer">→</button>
+                        <button type="button" aria-label="Quitar imagen" style="border:1px solid var(--color-divider);background:transparent;color:inherit;font-size:12px;padding:4px 6px;cursor:pointer">✕</button>
+                      </div>
+                    </div>
+                    <div style="position:relative;border:1px dashed var(--color-accent);padding:6.8px;background:color-mix(in srgb,var(--color-accent) 14%,transparent)">
+                      <div style="aspect-ratio:1;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 12%,transparent) 0 5px,transparent 5px 11px);display:grid;place-items:center;font:9px ui-monospace,Menlo,monospace;color:var(--color-accent-700)">02</div>
+                      <div style="font:8.5px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--color-accent-700);padding-top:5px">Arrastrando · suelta aquí</div>
+                    </div>
+                    <div style="position:relative;border:1px solid var(--color-divider);padding:6.8px">
+                      <div style="aspect-ratio:1;border:1px solid var(--color-divider);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 12%,transparent) 0 5px,transparent 5px 11px);display:grid;place-items:center;font:9px ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">03</div>
+                      <div style="display:flex;gap:3px;padding-top:5px">
+                        <button type="button" aria-label="Mover a la izquierda" style="flex:1;border:1px solid var(--color-divider);background:transparent;color:inherit;font-size:12px;padding:4px;cursor:pointer">←</button>
+                        <button type="button" aria-label="Mover a la derecha" style="flex:1;border:1px solid var(--color-divider);background:transparent;color:inherit;font-size:12px;padding:4px;cursor:pointer">→</button>
+                        <button type="button" aria-label="Quitar imagen" style="border:1px solid var(--color-divider);background:transparent;color:inherit;font-size:12px;padding:4px 6px;cursor:pointer">✕</button>
+                      </div>
+                    </div>
+                    <div style="border:1px dashed var(--color-neutral-500);display:grid;place-items:center;min-height:120px;text-align:center;padding:10.2px">
+                      <div>
+                        <div style="font-family:var(--font-heading);font-weight:600;font-size:22px;color:var(--color-neutral-600)">+</div>
+                        <div style="font:8.5px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-600)">Subir foto</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="border:1px solid var(--color-accent);background:color-mix(in srgb,var(--color-accent) 10%,transparent);padding:10.2px;font:10px/1.7 ui-monospace,Menlo,monospace;color:var(--color-accent-900)">
+                    <div style="letter-spacing:.1em;text-transform:uppercase">Alternativa por teclado</div>
+                    <div>Tab llega a cada foto. Espacio la “levanta”, ← → la mueven de posición, Espacio la suelta, Esc cancela. Los botones ← → hacen lo mismo con un clic. Cada cambio se anuncia por aria-live: “Foto 3 movida a la posición 2 de 4”.</div>
+                  </div>
+                  <div style="font:10px/1.6 ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">La primera posición siempre es la portada; al reordenar, la etiqueta se mueve con la foto.</div>
+                </div>
+              </div>
+
+              <div style="border-top:1px solid var(--color-divider);padding:13.6px 0 0;margin-top:20.4px;font:10.5px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">
+                <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Reutiliza · notas</div>
+                <div>· Input, Select, Textarea, Button; galería propia (SortableGallery) sobre dnd-kit con sensor de teclado activado.</div>
+                <div>· Validación en el cliente antes de subir a Storage: precio &gt; 0, stock ≥ 0, al menos una imagen.</div>
+                <div>· El mismo formulario sirve para editar; en edición el botón primario dice “Guardar cambios”.</div>
+              </div>
+            </section>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isVped }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Pedidos vendedor" style="display:flex;flex-wrap:wrap;align-items:stretch">
+            <aside style="border-right:1px solid var(--color-divider);padding:20.4px 13.6px;flex:1 1 190px;min-width:0">
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:17px;color:var(--color-accent-700);padding-bottom:13.6px">PANEL VENDEDOR</div>
+              <div style="display:flex;flex-direction:column;gap:1px;font-size:13.5px">
+                <span style="padding:8px;border-left:2px solid transparent;color:var(--color-neutral-700)">Mis productos</span>
+                <span style="padding:8px;border-left:2px solid transparent;color:var(--color-neutral-700)">Publicar</span>
+                <span style="padding:8px;background:color-mix(in srgb,var(--color-accent) 18%,transparent);border-left:2px solid var(--color-accent)">Pedidos</span>
+              </div>
+            </aside>
+            <section style="min-width:0;padding:20.4px;flex:999 1 460px">
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:28px">Pedidos</div>
+              <div style="font:10.5px/1.6 ui-monospace,Menlo,monospace;color:var(--color-neutral-600);padding-bottom:13.6px">Arrastra una tarjeta a la siguiente columna para avanzar su estado · solo un paso a la vez</div>
+
+              <sc-if value="{{ showData }}" hint-placeholder-val="{{ true }}">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10.2px;align-items:start">
+                  <sc-for list="{{ kanban }}" as="col" hint-placeholder-count="5">
+                    <div style="border:1px solid {{ col.border }};min-width:0;background:{{ col.bg }}">
+                      <div style="padding:10.2px;border-bottom:1px solid var(--color-divider);display:flex;justify-content:space-between;align-items:center;gap:6.8px">
+                        <span style="font:9.5px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase">{{ col.label }}</span>
+                        <span style="font:9.5px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">{{ col.count }}</span>
+                      </div>
+                      <div style="padding:10.2px;display:flex;flex-direction:column;gap:10.2px;min-height:120px">
+                        <sc-if value="{{ col.readonly }}" hint-placeholder-val="{{ false }}">
+                          <div style="font:9px/1.6 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-600);border:1px dashed var(--color-neutral-500);padding:6.8px">Solo lectura · no acepta tarjetas</div>
+                        </sc-if>
+                        <sc-for list="{{ col.cards }}" as="c" hint-placeholder-count="2">
+                          <article style="border:1px solid {{ c.border }};background:var(--color-bg);padding:10.2px;display:flex;flex-direction:column;gap:6.8px;box-shadow:{{ c.shadow }}">
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                              <span style="font:10.5px ui-monospace,Menlo,monospace;letter-spacing:.06em">#{{ c.id }}</span>
+                              <span style="font:11px ui-monospace,Menlo,monospace;cursor:grab" aria-hidden="true">⠿</span>
+                            </div>
+                            <div style="font:9px ui-monospace,Menlo,monospace;color:var(--color-neutral-600)">{{ c.date }}</div>
+                            <div style="font-size:12.5px;line-height:1.45;color:var(--color-neutral-800)">{{ c.items }}</div>
+                            <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--color-divider);padding-top:6.8px">
+                              <span style="font:8.5px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-600)">Tus ítems</span>
+                              <span style="font-family:var(--font-heading);font-weight:600;font-size:17px">{{ c.total }}</span>
+                            </div>
+                            <sc-if value="{{ c.movable }}" hint-placeholder-val="{{ false }}">
+                              <button type="button" style="border:1px solid var(--color-divider);background:transparent;color:inherit;padding:6px;font-family:var(--font-body);font-size:12px;cursor:pointer;text-align:left">Mover a {{ c.next }} →</button>
+                            </sc-if>
+                          </article>
+                        </sc-for>
+                        <sc-if value="{{ col.rejecting }}" hint-placeholder-val="{{ false }}">
+                          <div style="border:1px dashed #b3423a;background:color-mix(in srgb,#b3423a 8%,transparent);padding:10.2px;font:9px/1.6 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#b3423a">Movimiento no permitido · desde Pendiente solo se pasa a Pagado</div>
+                        </sc-if>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="border:1px solid var(--color-accent);background:color-mix(in srgb,var(--color-accent) 10%,transparent);padding:10.2px;margin-top:13.6px;font:10px/1.7 ui-monospace,Menlo,monospace;color:var(--color-accent-900)">
+                  <div style="letter-spacing:.1em;text-transform:uppercase">Alternativa por teclado</div>
+                  <div>Cada tarjeta tiene el botón “Mover a [siguiente estado]”, que es la única transición válida. Con la tarjeta enfocada, Espacio la levanta y ← → recorren solo las columnas permitidas; las inválidas ni se enfocan. El resultado se anuncia por aria-live: “Pedido 7f3a91 movido a Pagado”.</div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10.2px">
+                  <sc-for list="{{ five }}" as="k" hint-placeholder-count="5">
+                    <div style="border:1px solid var(--color-divider)">
+                      <div style="padding:10.2px;border-bottom:1px solid var(--color-divider)"><div style="height:10px;width:70%;background:var(--color-neutral-200)"></div></div>
+                      <div style="padding:10.2px;display:flex;flex-direction:column;gap:10.2px">
+                        <div style="height:92px;background:var(--color-neutral-200)"></div>
+                        <div style="height:92px;background:var(--color-neutral-200)"></div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid var(--color-divider);padding:54.4px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                  <div style="width:88px;height:88px;border:1px solid var(--color-accent);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--color-accent) 14%,transparent) 0 5px,transparent 5px 11px)"></div>
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">Sin pedidos todavía</div>
+                  <p style="margin:0;max-width:46ch;line-height:1.55;color:var(--color-neutral-700);font-size:14px">Cuando alguien compre uno de tus productos, la tarjeta aparecerá en Pendiente.</p>
+                  <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:12px 20.4px;font-family:var(--font-body);font-size:14.5px;cursor:pointer;min-height:44px">Ver mis productos</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid var(--color-divider);padding:54.4px 27.2px;display:flex;flex-direction:column;align-items:center;gap:13.6px;text-align:center">
+                  <div style="width:88px;height:88px;border:1px solid var(--color-neutral-500);display:grid;place-items:center;font-family:var(--font-heading);font-size:38px;color:var(--color-neutral-600)">!</div>
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:24px">No pudimos cargar el tablero</div>
+                  <p style="margin:0;font-size:14px;color:var(--color-neutral-700)">Ningún cambio de estado se perdió.</p>
+                  <button type="button" style="background:var(--color-accent);color:#fff;border:0;padding:12px 20.4px;font-family:var(--font-body);font-size:14.5px;cursor:pointer">Reintentar</button>
+                </div>
+              </sc-if>
+
+              <div style="border-top:1px solid var(--color-divider);padding:13.6px 0 0;margin-top:20.4px;font:10.5px/1.7 ui-monospace,Menlo,monospace;color:var(--color-neutral-700)">
+                <div style="letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Reutiliza · notas</div>
+                <div>· Card + OrderStatusBadge (en el encabezado de columna) + Price; tablero propio (OrdersKanban) sobre dnd-kit.</div>
+                <div>· El total de cada tarjeta suma solo los ítems de este vendedor, no el total del pedido.</div>
+                <div>· “Cancelado” se pinta atenuado y con borde discontinuo: no es destino de drop y su columna no resalta al arrastrar.</div>
+                <div>· Un salto inválido se rechaza antes de llamar al servidor: la columna se marca en rojo, la tarjeta vuelve a su sitio y aparece el motivo.</div>
+                <div>· En 375px el tablero se convierte en Tabs por estado con la misma acción “Mover a …”.</div>
+              </div>
+            </section>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;startRoute&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;tokens&quot;,&quot;base&quot;,&quot;dominio&quot;,&quot;layouts&quot;,&quot;home&quot;,&quot;categoria&quot;,&quot;busqueda&quot;,&quot;detalle&quot;,&quot;favoritos&quot;,&quot;carrito&quot;,&quot;pedidos&quot;,&quot;pedido&quot;,&quot;login&quot;,&quot;registro&quot;,&quot;vprod&quot;,&quot;vpub&quot;,&quot;vped&quot;],&quot;section&quot;:&quot;Vista inicial&quot;},&quot;startTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;section&quot;:&quot;Vista inicial&quot;},&quot;startDevice&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;mobile&quot;,&quot;tablet&quot;,&quot;desktop&quot;],&quot;section&quot;:&quot;Vista inicial&quot;}}">
+const NAV = [
+  { label: 'Sistema', items: [
+    { id: 'tokens', num: '00', label: 'Tokens y paleta', path: 'sistema / tokens', title: 'Sistema visual' },
+    { id: 'base', num: '00', label: 'Componentes base', path: 'sistema / componentes', title: 'Componentes shadcn' },
+    { id: 'dominio', num: '00', label: 'Componentes de dominio', path: 'sistema / dominio', title: 'Price · RatingStars · Badges' },
+    { id: 'layouts', num: '00', label: 'Los 3 layouts', path: 'sistema / layouts', title: 'Navegación' },
+  ]},
+  { label: 'Tienda', items: [
+    { id: 'home', num: '01', label: 'Home', path: '/', title: 'Home — catálogo', variants: true },
+    { id: 'categoria', num: '02', label: 'Categoría', path: '/categoria/[slug]', title: 'Categoría', variants: true },
+    { id: 'busqueda', num: '03', label: 'Búsqueda', path: '/buscar?q=', title: 'Resultados de búsqueda', variants: true },
+    { id: 'detalle', num: '04', label: 'Detalle de producto', path: '/producto/[id]', title: 'Detalle de producto', variants: true },
+    { id: 'favoritos', num: '05', label: 'Favoritos', path: '/favoritos', title: 'Favoritos', variants: true },
+    { id: 'carrito', num: '06', label: 'Carrito', path: '/carrito', title: 'Carrito', variants: true },
+  ]},
+  { label: 'Cuenta', items: [
+    { id: 'pedidos', num: '07', label: 'Mis pedidos', path: '/pedidos', title: 'Mis pedidos', variants: true },
+    { id: 'pedido', num: '08', label: 'Detalle de pedido', path: '/pedidos/[id]', title: 'Detalle de pedido', variants: true },
+    { id: 'login', num: '09', label: 'Ingresar', path: '/login', title: 'Ingresar' },
+    { id: 'registro', num: '10', label: 'Registro', path: '/registro', title: 'Crear cuenta' },
+  ]},
+  { label: 'Vendedor', items: [
+    { id: 'vprod', num: '11', label: 'Mis productos', path: '/vendedor/productos', title: 'Mis productos', variants: true },
+    { id: 'vpub', num: '12', label: 'Publicar / Editar', path: '/vendedor/productos/nuevo', title: 'Publicar producto' },
+    { id: 'vped', num: '13', label: 'Pedidos (kanban)', path: '/vendedor/pedidos', title: 'Pedidos del vendedor', variants: true },
+  ]},
+];
+
+const P = (b, n, price, cond, stock, rating, reviews, img) => ({ brand: b, name: n, price: price, cond: cond, stock: stock, rating: rating, reviews: reviews, img: img });
+
+const PRODUCTS = [
+  P('Lenovo', 'IdeaPad Slim 3 15" Ryzen 5 · 16GB · 512GB SSD', 'S/ 2,199.00', 'Nuevo', '12 disp.', '4.6', '18', 'Foto de producto · laptop'),
+  P('HP', 'Victus 15 Core i5 · RTX 3050 · 512GB', 'S/ 3,499.90', 'Nuevo', '5 disp.', '4.8', '31', 'Foto de producto · laptop gamer'),
+  P('Samsung', 'Galaxy A55 5G 256GB Azul', 'S/ 1,299.90', 'Nuevo', '20 disp.', '4.7', '52', 'Foto de producto · smartphone'),
+  P('Xiaomi', 'Redmi Note 13 Pro 256GB', 'S/ 999.00', 'Nuevo', '14 disp.', '4.5', '40', 'Foto de producto · smartphone'),
+  P('AMD', 'Ryzen 7 5700X 8 núcleos AM4', 'S/ 749.00', 'Nuevo', '7 disp.', '4.9', '12', 'Foto de producto · procesador'),
+  P('Western Digital', 'SSD Blue SN580 1TB NVMe', 'S/ 289.00', 'Nuevo', 'Sin stock', '4.6', '9', 'Foto de producto · ssd m.2'),
+  P('Sony', 'WH-1000XM4 Noise Cancelling', 'S/ 1,099.00', 'Usado', '2 disp.', '4.8', '27', 'Foto de producto · audífonos'),
+  P('TP-Link', 'Archer AX55 Wi-Fi 6 AX3000', 'S/ 269.90', 'Reacondicionado', '4 disp.', '4.3', '6', 'Foto de producto · router'),
+  P('Kingston', 'Fury Beast 16GB DDR4 3200MHz', 'S/ 219.90', 'Nuevo', '30 disp.', '4.7', '22', 'Foto de producto · memoria ram'),
+  P('LG', 'UltraGear 24GN60R 144Hz IPS', 'S/ 849.00', 'Nuevo', '6 disp.', '4.6', '15', 'Foto de producto · monitor'),
+  P('Logitech', 'G502 Hero 25K', 'S/ 179.90', 'Nuevo', '18 disp.', '4.8', '64', 'Foto de producto · mouse'),
+  P('Redragon', 'Kumara K552 mecánico RGB', 'S/ 129.90', 'Nuevo', '9 disp.', '4.4', '35', 'Foto de producto · teclado'),
+];
+
+const CART = [
+  { brand: 'Samsung', name: 'Galaxy A55 5G 256GB Azul', cond: 'Nuevo', qty: '1', unit: 'S/ 1,299.90', line: 'S/ 1,299.90', img: 'Foto · smartphone' },
+  { brand: 'Kingston', name: 'Fury Beast 16GB DDR4 3200MHz', cond: 'Nuevo', qty: '2', unit: 'S/ 219.90', line: 'S/ 439.80', img: 'Foto · memoria ram' },
+  { brand: 'LG', name: 'UltraGear 24GN60R 144Hz IPS', cond: 'Nuevo', qty: '1', unit: 'S/ 849.00', line: 'S/ 849.00', img: 'Foto · monitor' },
+];
+
+const RAMP = [
+  ['accent-100', '#eef6ff', 'fondo tinte'], ['accent-200', '#d6ebff', 'hover suave'],
+  ['accent-300', '#b5d9fd', 'bordes'], ['accent-400', '#94bce3', 'acento oscuro'],
+  ['accent-500', '#749dc4', 'base alterna'], ['accent', '#5980a6', 'primario'],
+  ['accent-700', '#416180', 'texto sobre tinte'], ['accent-800', '#2c455d', 'pressed'],
+  ['accent-900', '#1d2d3d', 'campo lleno'],
+];
+
+const SPACES = [['--space-1', '3.4px'], ['--space-2', '6.8px'], ['--space-3', '10.2px'], ['--space-4', '13.6px'], ['--space-6', '20.4px'], ['--space-8', '27.2px']];
+
+const QA = [
+  { date: '12 ago 2026', q: '¿La RAM es ampliable o viene soldada?', a: 'Viene soldada a la placa, no se puede ampliar. El modelo de 16GB es el máximo disponible.' },
+  { date: '05 ago 2026', q: '¿Incluye boleta y garantía?', a: 'Sí, boleta electrónica y 12 meses de garantía del importador.' },
+];
+
+const REVIEWS = [
+  { date: '14 ago 2026', stars: '★★★★★', text: 'Llegó en dos días a Arequipa, bien embalada. Para trabajo de oficina y clases va perfecta.' },
+  { date: '02 ago 2026', stars: '★★★★☆', text: 'Buena pantalla y batería. El teclado se siente algo blando, pero por el precio está bien.' },
+];
+
+const ORDERS = [
+  { id: '7f3a91', date: '18 ago 2026', status: 'Pendiente', items: 'Samsung Galaxy A55 5G 256GB · Kingston Fury Beast 16GB', total: 'S/ 1,519.80', cancelable: true },
+  { id: '2b8c40', date: '11 ago 2026', status: 'Pagado', items: 'LG UltraGear 24GN60R 144Hz', total: 'S/ 849.00', cancelable: false },
+  { id: 'c41d77', date: '04 ago 2026', status: 'Enviado', items: 'AMD Ryzen 7 5700X · Kingston Fury Beast 16GB', total: 'S/ 968.90', cancelable: false },
+  { id: '9a0e15', date: '22 jul 2026', status: 'Entregado', items: 'Sony WH-1000XM4 · Logitech G502 Hero', total: 'S/ 1,278.90', cancelable: false },
+  { id: '5d6f83', date: '09 jul 2026', status: 'Cancelado', items: 'Redragon Kumara K552 mecánico RGB', total: 'S/ 129.90', cancelable: false },
+];
+
+const ORDER_ITEMS = [
+  { name: 'Samsung Galaxy A55 5G 256GB Azul', qty: '1', unit: 'S/ 1,299.90', line: 'S/ 1,299.90' },
+  { name: 'Kingston Fury Beast 16GB DDR4 3200MHz', qty: '1', unit: 'S/ 219.90', line: 'S/ 219.90' },
+];
+
+const SELLER = [
+  { brand: 'Lenovo', name: 'IdeaPad Slim 3 15" Ryzen 5 · 16GB', price: 'S/ 2,199.00', stock: '12', state: 'Activo' },
+  { brand: 'HP', name: 'Victus 15 Core i5 · RTX 3050', price: 'S/ 3,499.90', stock: '5', state: 'Activo' },
+  { brand: 'Western Digital', name: 'SSD Blue SN580 1TB NVMe', price: 'S/ 289.00', stock: '0', state: 'Activo' },
+  { brand: 'TP-Link', name: 'Archer AX55 Wi-Fi 6 AX3000', price: 'S/ 269.90', stock: '4', state: 'Activo' },
+  { brand: 'Xiaomi', name: 'Redmi Note 13 Pro 256GB', price: 'S/ 999.00', stock: '14', state: 'Inactivo' },
+  { brand: 'Redragon', name: 'Kumara K552 mecánico RGB', price: 'S/ 129.90', stock: '9', state: 'Inactivo' },
+];
+
+const KANBAN = [
+  { id: 'pendiente', label: 'Pendiente', next: 'Pagado', cards: [
+    { id: '7f3a91', date: '18 ago · 14:32', items: '1 × Kingston Fury Beast 16GB', total: 'S/ 219.90', dragging: true },
+    { id: 'e05b12', date: '17 ago · 09:10', items: '1 × Lenovo IdeaPad Slim 3', total: 'S/ 2,199.00' },
+  ]},
+  { id: 'pagado', label: 'Pagado', next: 'Enviado', cards: [
+    { id: '2b8c40', date: '11 ago · 18:44', items: '1 × HP Victus 15', total: 'S/ 3,499.90' },
+    { id: 'aa71c9', date: '10 ago · 12:02', items: '2 × TP-Link Archer AX55', total: 'S/ 539.80' },
+  ]},
+  { id: 'enviado', label: 'Enviado', next: 'Entregado', cards: [
+    { id: 'c41d77', date: '04 ago · 08:20', items: '1 × Western Digital SSD 1TB', total: 'S/ 289.00' },
+  ]},
+  { id: 'entregado', label: 'Entregado', next: null, cards: [
+    { id: '9a0e15', date: '22 jul · 16:05', items: '1 × Redragon Kumara K552', total: 'S/ 129.90' },
+  ]},
+  { id: 'cancelado', label: 'Cancelado', next: null, readonly: true, cards: [
+    { id: '5d6f83', date: '09 jul · 11:41', items: '1 × Xiaomi Redmi Note 13 Pro', total: 'S/ 999.00' },
+  ]},
+];
+
+const VARIANTS = [['data', 'Datos'], ['loading', 'Cargando'], ['empty', 'Vacío'], ['error', 'Error']];
+const DEVICES = [['mobile', '375'], ['tablet', '768'], ['desktop', '1280']];
+const WIDTHS = { mobile: '375px', tablet: '768px', desktop: '1280px' };
+
+class Component extends DCLogic {
+  state = {
+    route: this.props.startRoute || 'home',
+    variant: 'data',
+    device: this.props.startDevice || 'desktop',
+    theme: this.props.startTheme || 'light',
+  };
+
+  seg(active) {
+    return 'border:0;background:' + (active ? 'var(--color-accent)' : 'transparent') +
+      ';color:' + (active ? '#fff' : 'inherit') +
+      ';padding:6.8px 10.2px;font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer';
+  }
+
+  cond(c) {
+    if (c === 'Nuevo') return { bg: 'var(--color-accent)', fg: '#fff' };
+    if (c === 'Usado') return { bg: 'var(--color-neutral-200)', fg: 'var(--color-neutral-800)' };
+    return { bg: 'color-mix(in srgb,var(--color-accent) 22%,transparent)', fg: 'var(--color-accent-900)' };
+  }
+
+  deco(list) {
+    return list.map(p => {
+      const c = this.cond(p.cond);
+      return Object.assign({}, p, { condBg: c.bg, condFg: c.fg, stockFg: p.stock === 'Sin stock' ? 'var(--color-neutral-600)' : 'var(--color-accent-700)' });
+    });
+  }
+
+  status(s) {
+    if (s === 'Pendiente') return { bg: 'transparent', fg: 'var(--color-neutral-800)', border: '1px solid var(--color-neutral-400)' };
+    if (s === 'Pagado') return { bg: 'var(--color-accent-200)', fg: 'var(--color-accent-900)', border: '0' };
+    if (s === 'Enviado') return { bg: 'var(--color-accent-400)', fg: 'var(--color-accent-900)', border: '0' };
+    if (s === 'Entregado') return { bg: 'var(--color-accent-700)', fg: '#fff', border: '0' };
+    return { bg: 'transparent', fg: 'var(--color-neutral-600)', border: '1px dashed var(--color-neutral-500)' };
+  }
+
+  renderVals() {
+    const { route, variant, device, theme } = this.state;
+    const flat = NAV.flatMap(g => g.items);
+    const cur = flat.find(i => i.id === route) || flat[0];
+
+    return {
+      navGroups: NAV.map(g => ({
+        label: g.label,
+        items: g.items.map(it => ({
+          num: it.num, label: it.label,
+          current: it.id === route ? 'page' : 'false',
+          go: () => this.setState({ route: it.id, variant: 'data' }),
+          style: 'display:flex;gap:6.8px;align-items:center;text-align:left;border:0;cursor:pointer;padding:6.8px;font-family:var(--font-body);font-size:13.5px;background:' +
+            (it.id === route ? 'color-mix(in srgb,var(--color-accent) 20%,transparent)' : 'transparent') +
+            ';color:inherit;border-left:2px solid ' + (it.id === route ? 'var(--color-accent)' : 'transparent'),
+        })),
+      })),
+      routePath: cur.path,
+      routeTitle: cur.title,
+      hasVariants: !!cur.variants,
+      variantOpts: VARIANTS.map(([id, label]) => ({ label: label, go: () => this.setState({ variant: id }), style: this.seg(variant === id) })),
+      deviceOpts: DEVICES.map(([id, label]) => ({ label: label, go: () => this.setState({ device: id }), style: this.seg(device === id) })),
+      toggleTheme: () => this.setState({ theme: theme === 'light' ? 'dark' : 'light' }),
+      themeLabel: theme === 'light' ? 'Claro' : 'Oscuro',
+      theme: theme,
+      deviceW: WIDTHS[device],
+
+      showData: variant === 'data', showLoading: variant === 'loading',
+      showEmpty: variant === 'empty', showError: variant === 'error',
+
+      isTokens: route === 'tokens', isBase: route === 'base', isDominio: route === 'dominio',
+      isLayouts: route === 'layouts', isHome: route === 'home', isCategoria: route === 'categoria',
+      isBusqueda: route === 'busqueda', isDetalle: route === 'detalle', isFavoritos: route === 'favoritos',
+      isCarrito: route === 'carrito', isPedidos: route === 'pedidos', isPedido: route === 'pedido',
+      isLogin: route === 'login', isRegistro: route === 'registro', isVprod: route === 'vprod',
+      isVpub: route === 'vpub', isVped: route === 'vped',
+
+      products: PRODUCTS.map(p => {
+        const c = this.cond(p.cond);
+        return Object.assign({}, p, { condBg: c.bg, condFg: c.fg, stockFg: p.stock === 'Sin stock' ? 'var(--color-neutral-600)' : 'var(--color-accent-700)' });
+      }),
+      cart: CART,
+      laptops: this.deco(PRODUCTS.filter(p => ['Lenovo', 'HP'].indexOf(p.brand) >= 0 || p.name.indexOf('UltraGear') >= 0 || p.name.indexOf('Redmi') >= 0)),
+      ryzen: this.deco(PRODUCTS.filter(p => p.name.indexOf('Ryzen') >= 0)),
+      favs: this.deco([PRODUCTS[2], PRODUCTS[6], PRODUCTS[11]]),
+      qa: QA,
+      reviews: REVIEWS,
+      orderItems: ORDER_ITEMS,
+      orders: ORDERS.map(o => {
+        const s = this.status(o.status);
+        return Object.assign({}, o, { badgeBg: s.bg, badgeFg: s.fg, badgeBorder: s.border });
+      }),
+      sellerProducts: SELLER.map(s => {
+        const active = s.state === 'Activo';
+        return Object.assign({}, s, {
+          stockFg: s.stock === '0' ? 'var(--color-neutral-600)' : 'inherit',
+          toggle: active ? 'Desactivar' : 'Activar',
+          stBg: active ? 'var(--color-accent-200)' : 'transparent',
+          stFg: active ? 'var(--color-accent-900)' : 'var(--color-neutral-600)',
+          stBorder: active ? '0' : '1px dashed var(--color-neutral-500)',
+        });
+      }),
+      kanban: KANBAN.map(col => ({
+        label: col.label,
+        count: String(col.cards.length),
+        readonly: !!col.readonly,
+        rejecting: col.id === 'entregado',
+        border: col.readonly ? 'var(--color-neutral-400)' : 'var(--color-divider)',
+        bg: col.readonly ? 'color-mix(in srgb,var(--color-neutral-500) 8%,transparent)' : 'transparent',
+        cards: col.cards.map(c => ({
+          id: c.id, date: c.date, items: c.items, total: c.total,
+          movable: !!col.next, next: col.next,
+          border: c.dragging ? 'var(--color-accent)' : 'var(--color-divider)',
+          shadow: c.dragging ? 'var(--shadow-md)' : 'none',
+        })),
+      })),
+      five: [1, 2, 3, 4, 5],
+      resultCount: '16 productos · 14 visibles',
+      accentRamp: RAMP.map(([name, hex, use]) => ({ name: name, hex: hex, use: use })),
+      spaceScale: SPACES.map(([name, val]) => ({ name: name, val: val })),
+      three: [1, 2, 3], eight: [1, 2, 3, 4, 5, 6, 7, 8],
+    };
+  }
+}
+
+</script>
+</body>
+</html>
