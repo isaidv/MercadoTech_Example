@@ -63,6 +63,10 @@ export async function getTopSellingProducts(admin: Client, limit: number): Promi
 
   const totals = new Map<string, TopSellingProduct>();
   for (const row of data ?? []) {
+    // `orders!inner(status)` es una relación a-uno (cada order_item tiene
+    // exactamente un order) y en runtime llega como objeto, no array — el
+    // tipo que infiere supabase-js para un `!inner` embebido dentro de un
+    // `.select()` en string no lo modela así, de ahí el cast.
     const orderStatus = (row as unknown as { orders: { status: string } }).orders.status;
     if (orderStatus === "cancelado") continue;
 
