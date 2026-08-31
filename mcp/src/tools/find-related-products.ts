@@ -22,6 +22,25 @@ import { getErrorMessage, NotFoundError, ProviderDownError } from "../lib/errors
  * reutilizan solo para reconstruir el texto a embeber (el nombre de la
  * categoría no viaja en `Product`, solo `category_id`) — cero SQL nuevo.
  */
+
+/**
+ * `KnowledgeMatch.metadata` es `unknown` a nivel de tipo (mismo motivo que
+ * documenta `services/chat.service.ts:extractTitle` — nadie en `lib/ai/`
+ * ni en `vector-search.service.ts` conoce la forma que le dio
+ * `embedding.service.ts` al fichar). Se replica acá el mismo chequeo de
+ * tipo en runtime en vez de castear a ciegas: `metadata.title` siempre es
+ * string en la práctica (así lo guarda `embedding.service.ts`), pero un
+ * cast sin verificar dejaría pasar cualquier otro tipo tal cual hacia un
+ * campo que la tool declara como texto legible.
+ */
+function extractMetadataTitle(metadata: unknown): string | undefined {
+  if (metadata && typeof metadata === "object" && "title" in metadata) {
+    const title = (metadata as { title: unknown }).title;
+    if (typeof title === "string") return title;
+  }
+  return undefined;
+}
+
 export function registerFindRelatedProductsTool(server: McpServer): void {
   defineTool(server, {
     name: "find_related_products",
@@ -60,7 +79,7 @@ export function registerFindRelatedProductsTool(server: McpServer): void {
         .slice(0, topK)
         .map((match) => ({
           productId: match.source_id,
-          title: (match.metadata as { title?: string } | null)?.title ?? match.content.split("\n")[0],
+          title: extractMetadataTitle(match.metadata) ?? match.content.split("\n")[0],
           similarity: match.similarity,
         }));
 
