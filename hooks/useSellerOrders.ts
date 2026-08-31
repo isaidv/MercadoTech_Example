@@ -8,8 +8,14 @@ import { ORDER_STATUS_FLOW } from "@/lib/constants/orders";
 import type { OrderStatus } from "@/lib/constants/roles";
 import type { SellerOrder } from "@/types/order";
 
-/** Un paso adelante en ORDER_STATUS_FLOW — ver EJEMPLOS de la Fase 3.7. Nunca acepta 'cancelado' como destino: el vendedor no puede cancelar (RLS lo confirma, ver reasoning). */
-function canMove(from: OrderStatus, to: OrderStatus): boolean {
+/**
+ * Un paso adelante en ORDER_STATUS_FLOW — ver EJEMPLOS de la Fase 3.7.
+ * Nunca acepta 'cancelado' como destino: el vendedor no puede cancelar
+ * (RLS lo confirma, ver reasoning). Exportada en la Fase 6.3 (decisión 4,
+ * MercadoTech_sesion6.md) — único cambio de producción permitido en esa
+ * fase, sin tocar la lógica: se testea directo, sin React.
+ */
+export function canMove(from: OrderStatus, to: OrderStatus): boolean {
   const fromIndex = ORDER_STATUS_FLOW.indexOf(from);
   const toIndex = ORDER_STATUS_FLOW.indexOf(to);
   return fromIndex !== -1 && toIndex === fromIndex + 1;
