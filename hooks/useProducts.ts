@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { listActiveProducts } from "@/services/product.service";
+import { getErrorMessage } from "@/lib/utils";
 import type { Product, ProductCatalogFilters } from "@/types/product";
 import { PRODUCT_CONDITIONS, type ProductCondition } from "@/lib/constants/roles";
 import { DEFAULT_SORT, SORT_OPTIONS, type SortOption } from "@/lib/constants/catalog";
@@ -76,7 +77,7 @@ export function useProducts(categorySlug?: string) {
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : "No se pudieron cargar los productos.");
+        setError(getErrorMessage(err, "No se pudieron cargar los productos."));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

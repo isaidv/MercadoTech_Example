@@ -8,6 +8,7 @@ import {
   create,
   type CanReviewResult,
 } from "@/services/review.service";
+import { getErrorMessage } from "@/lib/utils";
 import type { Review } from "@/types/review";
 
 const NOT_REVIEWABLE: CanReviewResult = { allowed: false, orderId: null };
@@ -42,7 +43,7 @@ export function useReviews(productId: string, userId: string | null) {
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : "No se pudieron cargar las reseñas.");
+        setError(getErrorMessage(err, "No se pudieron cargar las reseñas."));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -78,7 +79,7 @@ export function useReviews(productId: string, userId: string | null) {
         // (unique(product_id, buyer_id) — un segundo intento fallaría igual).
         setCanReview(NOT_REVIEWABLE);
       } catch (err) {
-        setSubmitError(err instanceof Error ? err.message : "No se pudo enviar la reseña.");
+        setSubmitError(getErrorMessage(err, "No se pudo enviar la reseña."));
         throw err;
       } finally {
         setSubmitting(false);

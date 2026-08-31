@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { listMine } from "@/services/favorite.service";
+import { getErrorMessage } from "@/lib/utils";
 import type { Product } from "@/types/product";
 
 /** Lista completa de favoritos para /favoritos. */
@@ -27,7 +28,7 @@ export function useFavorites(userId: string | null) {
         if (!cancelled) setItems(data);
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "No se pudieron cargar tus favoritos.");
+        if (!cancelled) setError(getErrorMessage(err, "No se pudieron cargar tus favoritos."));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

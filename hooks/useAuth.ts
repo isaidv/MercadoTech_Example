@@ -9,6 +9,7 @@ import {
   register as registerService,
   subscribeToAuthChange,
 } from "@/services/auth.service";
+import { getErrorMessage } from "@/lib/utils";
 import type { Profile } from "@/types/user";
 import type { Role } from "@/lib/constants/roles";
 
@@ -31,7 +32,7 @@ const INITIAL_STATE: AuthState = {
 };
 
 function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Ocurrió un error inesperado.";
+  return getErrorMessage(error);
 }
 
 /**

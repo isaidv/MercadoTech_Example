@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { isFavorite, toggle as toggleService } from "@/services/favorite.service";
+import { getErrorMessage } from "@/lib/utils";
 
 /** Estado de favorito por producto + toggle optimista con rollback. */
 export function useFavorite(productId: string, userId: string | null) {
@@ -26,7 +27,7 @@ export function useFavorite(productId: string, userId: string | null) {
         if (!cancelled) setFavorite(value);
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "No se pudo cargar el favorito.");
+        if (!cancelled) setError(getErrorMessage(err, "No se pudo cargar el favorito."));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -50,7 +51,7 @@ export function useFavorite(productId: string, userId: string | null) {
       setFavorite(result);
     } catch (err) {
       setFavorite(previous);
-      setError(err instanceof Error ? err.message : "No se pudo actualizar el favorito.");
+      setError(getErrorMessage(err, "No se pudo actualizar el favorito."));
     } finally {
       setToggling(false);
     }

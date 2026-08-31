@@ -37,8 +37,19 @@ export function formatPrice(value: number | string): string {
  * una instancia de `Error`). Los errores del RPC `create_order_from_cart`
  * (Fase 3.6) ya traen el nombre del producto adentro del mensaje —
  * mostrarlos tal cual, sin reescribir, es lo correcto.
+ *
+ * `fallback` (Fase 5.6, hallazgo de mercadotech-tech-lead): algunos hooks
+ * más viejos (`useAuth`, `useCategories`, `useFavorite`, `useFavorites`,
+ * `useProduct`, `useQuestions`, `useReviews`) repetían inline
+ * `err instanceof Error ? err.message : "<mensaje propio>"`, sin el caso
+ * de `PostgrestError` de arriba — un error real de Supabase (objeto
+ * plano) caía directo al mensaje genérico de ese hook en vez de mostrar
+ * el detalle real. El segundo parámetro deja que cada hook siga mostrando
+ * SU mensaje de siempre como último recurso (nunca uno peor que antes),
+ * mientras gana el caso de objeto plano que antes le faltaba. Sin
+ * segundo argumento, el comportamiento es idéntico al de siempre.
  */
-export function getErrorMessage(error: unknown): string {
+export function getErrorMessage(error: unknown, fallback = "Ocurrió un error inesperado."): string {
   if (error instanceof Error) return error.message;
   if (
     error &&
@@ -48,5 +59,5 @@ export function getErrorMessage(error: unknown): string {
   ) {
     return (error as { message: string }).message;
   }
-  return "Ocurrió un error inesperado.";
+  return fallback;
 }

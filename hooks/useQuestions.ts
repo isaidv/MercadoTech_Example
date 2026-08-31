@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { listByProduct, create, answer as answerService } from "@/services/question.service";
+import { getErrorMessage } from "@/lib/utils";
 import type { Question } from "@/types/question";
 
 /** Lista + ask + answer con actualización optimista (fila temporal para ask; rollback si falla answer). */
@@ -21,7 +22,7 @@ export function useQuestions(productId: string) {
         if (!cancelled) setQuestions(data);
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "No se pudieron cargar las preguntas.");
+        if (!cancelled) setError(getErrorMessage(err, "No se pudieron cargar las preguntas."));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -52,7 +53,7 @@ export function useQuestions(productId: string) {
         setQuestions((prev) => prev.map((q) => (q.id === tempId ? created : q)));
       } catch (err) {
         setQuestions((prev) => prev.filter((q) => q.id !== tempId));
-        setActionError(err instanceof Error ? err.message : "No se pudo enviar la pregunta.");
+        setActionError(getErrorMessage(err, "No se pudo enviar la pregunta."));
         throw err;
       }
     },
@@ -75,7 +76,7 @@ export function useQuestions(productId: string) {
         setQuestions((prev) => prev.map((q) => (q.id === questionId ? updated : q)));
       } catch (err) {
         setQuestions(previous);
-        setActionError(err instanceof Error ? err.message : "No se pudo enviar la respuesta.");
+        setActionError(getErrorMessage(err, "No se pudo enviar la respuesta."));
         throw err;
       }
     },

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getProductById, getProductImages, registerView } from "@/services/product.service";
 import { getPublicUrl, PRODUCT_IMAGES_BUCKET } from "@/services/storage.service";
 import { useAuth } from "@/hooks/useAuth";
+import { getErrorMessage } from "@/lib/utils";
 import type { Product, ProductGalleryImage } from "@/types/product";
 
 /**
@@ -42,7 +43,7 @@ export function useProduct(productId: string) {
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : "No se pudo cargar el producto.");
+        setError(getErrorMessage(err, "No se pudo cargar el producto."));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

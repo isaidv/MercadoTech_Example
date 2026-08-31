@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { listCategories } from "@/services/category.service";
+import { getErrorMessage } from "@/lib/utils";
 import type { Category } from "@/types/product";
 
 /** Cache en memoria a nivel de módulo — las categorías casi no cambian, no vale la pena refetchear en cada navegación entre pantallas del catálogo. Se pierde en un refresh de página completo (comportamiento aceptado). */
@@ -27,7 +28,7 @@ export function useCategories() {
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : "No se pudieron cargar las categorías.");
+        setError(getErrorMessage(err, "No se pudieron cargar las categorías."));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
