@@ -68,7 +68,7 @@ export function useSellerOrders(sellerId: string | null) {
 
       if (!canMove(order.status, toStatus)) {
         // Rechazada ACÁ, antes de llamar al service — sin roundtrip.
-        toast.error(`No podés mover un pedido de "${order.status}" a "${toStatus}" directamente.`);
+        toast.error(`No se puede mover un pedido de "${order.status}" a "${toStatus}" directamente.`);
         return;
       }
 
