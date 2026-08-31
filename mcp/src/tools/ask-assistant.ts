@@ -4,7 +4,7 @@ import { ask } from "@/services/chat.service";
 import { defineTool } from "./define-tool.js";
 import { createContext } from "../context.js";
 import { toolSuccess } from "../lib/tool-result.js";
-import { ProviderDownError } from "../lib/errors.js";
+import { getErrorMessage, ProviderDownError } from "../lib/errors.js";
 
 /**
  * Tool #5 — `ask_assistant`. Reutiliza `chat.service.ask` (Fase 4.6) tal
@@ -34,7 +34,7 @@ export function registerAskAssistantTool(server: McpServer): void {
       try {
         result = await ask(input.query, input.mode, {}, admin);
       } catch (error) {
-        throw new ProviderDownError("Voyage AI / Claude", error instanceof Error ? error.message : String(error));
+        throw new ProviderDownError("Voyage AI / Claude", getErrorMessage(error));
       }
       return toolSuccess(result.answer, {
         sources: result.sources,

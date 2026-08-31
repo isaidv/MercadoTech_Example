@@ -28,3 +28,29 @@ export class ProviderDownError extends Error {
     this.name = "ProviderDownError";
   }
 }
+
+/**
+ * Extrae un mensaje legible de cualquier `catch (error)` — usado por
+ * `safe.ts` y `safe-resource.ts` (Fase 5.4) y por las tools que envuelven
+ * errores de proveedor. Verificado en vivo (Fase 5.4, con Supabase
+ * detenido): un `error instanceof Error ? error.message : String(error)`
+ * a secas da `"[object Object]"` cuando el cliente de `@supabase-js`
+ * rechaza con un objeto plano (`{message, code, details, hint}` —
+ * `PostgrestError`, no siempre una instancia real de `Error`, sobre todo
+ * en fallos de conexión). Acá se intenta, en orden: `Error.message` real,
+ * después `.message` de cualquier objeto que lo tenga como string
+ * (cubre `PostgrestError` y errores de `fetch`), y solo como último
+ * recurso `JSON.stringify` (más útil que `String()` sobre un objeto).
+ */
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error !== null && "message" in error) {
+    const message = (error as { message: unknown }).message;
+    if (typeof message === "string") return message;
+  }
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+}

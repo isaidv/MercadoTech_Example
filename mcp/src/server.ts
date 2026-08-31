@@ -1,5 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerTools } from "./tools/index.js";
+import { registerResources } from "./resources/index.js";
+import { registerPrompts } from "./prompts/index.js";
 
 const SERVER_NAME = "mercadotech";
 const SERVER_VERSION = "0.1.0";
@@ -10,9 +12,8 @@ const SERVER_VERSION = "0.1.0";
  * `registerTool`/`registerResource`/`registerPrompt` — no hace falta
  * declararlas a mano.
  *
- * Fase 5.2: cero registros (capabilities vacías). Fase 5.3: las 10 tools
- * de `tools/index.ts`. La Fase 5.4 suma resources/prompts acá mismo, con
- * su propio `registerResources(server)`/`registerPrompts(server)` — este
+ * Fase 5.3: las 10 tools de `tools/index.ts`. Fase 5.4: los 7 resources
+ * (`resources/index.ts`) y los 5 Prompts MCP (`prompts/index.ts`) — este
  * archivo no crece con cada tool/resource/prompt nueva, solo los conecta.
  */
 export function createServer(): McpServer {
@@ -22,6 +23,8 @@ export function createServer(): McpServer {
   });
 
   registerTools(server);
+  registerResources(server);
+  registerPrompts(server);
 
   return server;
 }

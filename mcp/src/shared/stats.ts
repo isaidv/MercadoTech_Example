@@ -77,3 +77,32 @@ export async function getTopSellingProducts(admin: Client, limit: number): Promi
 
   return [...totals.values()].sort((a, b) => b.unitsSold - a.unitsSold).slice(0, limit);
 }
+
+export type StoreStats = {
+  activeProductCount: number;
+  categories: CategoryWithCount[];
+  topSelling: TopSellingProduct[];
+};
+
+const DEFAULT_TOP_SELLING_LIMIT = 5;
+
+/**
+ * DERIVACIÓN — compone las dos funciones de arriba + el total de
+ * `listActiveProducts`. Se movió acá en la Fase 5.4 (antes vivía inline
+ * en `tools/get-store-stats.ts`, Fase 5.3) porque el resource
+ * `mercadotech://stats` necesita la MISMA composición ("misma derivación
+ * que la tool #9", spec) — así la tool y el resource llaman a esta única
+ * función en vez de repetir el `Promise.all` en dos archivos.
+ */
+export async function getStoreStats(
+  anon: Client,
+  admin: Client,
+  topSellingLimit: number = DEFAULT_TOP_SELLING_LIMIT,
+): Promise<StoreStats> {
+  const [categories, { total: activeProductCount }, topSelling] = await Promise.all([
+    getCategoriesWithCounts(anon),
+    listActiveProducts({}, anon),
+    getTopSellingProducts(admin, topSellingLimit),
+  ]);
+  return { activeProductCount, categories, topSelling };
+}

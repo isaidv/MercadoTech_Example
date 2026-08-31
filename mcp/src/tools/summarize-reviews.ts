@@ -5,7 +5,7 @@ import { summarizeReviews } from "../shared/summarize.js";
 import { defineTool } from "./define-tool.js";
 import { createContext } from "../context.js";
 import { toolSuccess } from "../lib/tool-result.js";
-import { ProviderDownError } from "../lib/errors.js";
+import { getErrorMessage, ProviderDownError } from "../lib/errors.js";
 
 /**
  * Tool #8 — `summarize_reviews`. Reutiliza `review.service.listByProduct`
@@ -35,7 +35,7 @@ export function registerSummarizeReviewsTool(server: McpServer): void {
         const result = await summarizeReviews(reviews);
         return toolSuccess(result.summary, { reviewCount: result.reviewCount, averageRating: result.averageRating });
       } catch (error) {
-        throw new ProviderDownError("Claude (completion)", error instanceof Error ? error.message : String(error));
+        throw new ProviderDownError("Claude (completion)", getErrorMessage(error));
       }
     },
   });

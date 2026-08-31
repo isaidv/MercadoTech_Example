@@ -1,6 +1,6 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { toolError } from "./tool-result.js";
-import { InvalidInputError, NotFoundError, ProviderDownError } from "./errors.js";
+import { getErrorMessage, InvalidInputError, NotFoundError, ProviderDownError } from "./errors.js";
 
 /**
  * Wrapper try/catch uniforme (lección 7 de la Guía) — TODA tool de la
@@ -23,7 +23,6 @@ export async function safeTool(fn: () => Promise<CallToolResult>): Promise<CallT
     if (error instanceof NotFoundError || error instanceof InvalidInputError || error instanceof ProviderDownError) {
       return toolError(error.message);
     }
-    const message = error instanceof Error ? error.message : String(error);
-    return toolError(`Error inesperado: ${message}`);
+    return toolError(`Error inesperado: ${getErrorMessage(error)}`);
   }
 }

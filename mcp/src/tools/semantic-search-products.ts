@@ -4,7 +4,7 @@ import { searchProducts } from "@/services/vector-search.service";
 import { defineTool } from "./define-tool.js";
 import { createContext } from "../context.js";
 import { toolSuccess } from "../lib/tool-result.js";
-import { ProviderDownError } from "../lib/errors.js";
+import { getErrorMessage, ProviderDownError } from "../lib/errors.js";
 
 /**
  * Tool #4 — `semantic_search_products`. Reutiliza
@@ -37,7 +37,7 @@ export function registerSemanticSearchProductsTool(server: McpServer): void {
       try {
         results = await searchProducts(input.query, { topK: input.topK }, admin);
       } catch (error) {
-        throw new ProviderDownError("Voyage AI (embeddings)", error instanceof Error ? error.message : String(error));
+        throw new ProviderDownError("Voyage AI (embeddings)", getErrorMessage(error));
       }
       return toolSuccess(`${results.length} producto(s) relevante(s) para "${input.query}".`, { results });
     },

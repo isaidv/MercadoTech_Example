@@ -1,16 +1,18 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getProductById, getProductImages } from "@/services/product.service";
-import { listByProduct as listQuestionsByProduct } from "@/services/question.service";
+import { getProductDetail } from "../shared/products.js";
 import { defineTool } from "./define-tool.js";
 import { createContext } from "../context.js";
 import { toolSuccess } from "../lib/tool-result.js";
 import { NotFoundError } from "../lib/errors.js";
 
 /**
- * Tool #2 — `get_product`. Reutiliza `product.service.{getProductById,
- * getProductImages}` + `question.service.listByProduct`. Cliente **anon**
- * (mismas policies públicas que la tool #1).
+ * Tool #2 — `get_product`. Reutiliza la derivación `getProductDetail`
+ * (`shared/products.ts`: `product.service.{getProductById,
+ * getProductImages}` + `question.service.listByProduct` — factorizada
+ * en la Fase 5.4 para que el resource `products/{id}` use exactamente lo
+ * mismo, sin duplicar la composición). Cliente **anon** (mismas policies
+ * públicas que la tool #1).
  *
  * NO llama `review.service.getAverage` por separado — sería una segunda
  * consulta para un dato que `getProductById` YA calcula
@@ -31,9 +33,9 @@ export function registerGetProductTool(server: McpServer): void {
     handler: async (input) => {
       const { anon } = createContext();
 
-      let product;
+      let detail;
       try {
-        product = await getProductById(input.productId, anon);
+        detail = await getProductDetail(input.productId, anon);
       } catch {
         // `getProductById` usa `.single()`: 0 filas (borrado, inactivo, o
         // simplemente no existe) tira un error de Postgrest, no un `null`
@@ -41,16 +43,8 @@ export function registerGetProductTool(server: McpServer): void {
         throw new NotFoundError(`producto ${input.productId}`);
       }
 
-      const [images, questions] = await Promise.all([
-        getProductImages(input.productId, anon),
-        listQuestionsByProduct(input.productId, anon),
-      ]);
-
-      return toolSuccess(`${product.title} — S/ ${product.price.toFixed(2)}, ${product.stock} en stock.`, {
-        product,
-        images,
-        questions,
-      });
+      const { product } = detail;
+      return toolSuccess(`${product.title} — S/ ${product.price.toFixed(2)}, ${product.stock} en stock.`, detail);
     },
   });
 }

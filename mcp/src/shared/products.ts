@@ -1,7 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
-import { getProductById } from "@/services/product.service";
-import type { Product } from "@/types/product";
+import { getProductById, getProductImages } from "@/services/product.service";
+import { listByProduct as listQuestionsByProduct } from "@/services/question.service";
+import type { Product, ProductImage } from "@/types/product";
+import type { Question } from "@/types/question";
 
 type Client = SupabaseClient<Database>;
 
@@ -26,4 +28,33 @@ export async function getProductsByIds(ids: string[], supabase: Client): Promise
   return results
     .filter((result): result is PromiseFulfilledResult<Product> => result.status === "fulfilled")
     .map((result) => result.value);
+}
+
+export type ProductDetail = {
+  product: Product;
+  images: ProductImage[];
+  questions: Question[];
+};
+
+/**
+ * DERIVACIÓN — la misma composición que usaba `tools/get-product.ts`
+ * (Fase 5.3, `getProductById` + `getProductImages` +
+ * `question.service.listByProduct`, ningún service la da armada de una).
+ * Se movió acá en la Fase 5.4 porque el resource `products/{id}` necesita
+ * EXACTAMENTE la misma forma ("misma forma que la tool #2 — misma función
+ * compartida", spec) — así la tool y el resource llaman a esta única
+ * función en vez de duplicar la composición en dos archivos.
+ *
+ * Deja pasar el error de `getProductById` tal cual (0 filas → error de
+ * Postgrest `.single()`) — cada caller decide cómo traducirlo: la tool
+ * lo envuelve en `NotFoundError` (Fase 5.3), el resource lo deja
+ * atrapar por `safeRead` (Fase 5.4, lección 7).
+ */
+export async function getProductDetail(productId: string, supabase: Client): Promise<ProductDetail> {
+  const product = await getProductById(productId, supabase);
+  const [images, questions] = await Promise.all([
+    getProductImages(productId, supabase),
+    listQuestionsByProduct(productId, supabase),
+  ]);
+  return { product, images, questions };
 }

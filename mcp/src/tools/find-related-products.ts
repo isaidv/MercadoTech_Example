@@ -7,7 +7,7 @@ import { searchByEmbedding } from "@/services/vector-search.service";
 import { defineTool } from "./define-tool.js";
 import { createContext } from "../context.js";
 import { toolSuccess } from "../lib/tool-result.js";
-import { NotFoundError, ProviderDownError } from "../lib/errors.js";
+import { getErrorMessage, NotFoundError, ProviderDownError } from "../lib/errors.js";
 
 /**
  * Tool #7 — `find_related_products` ("más como este"). Reutiliza
@@ -52,7 +52,7 @@ export function registerFindRelatedProductsTool(server: McpServer): void {
         const embedding = await generateEmbedding(text, "query");
         matches = await searchByEmbedding(embedding, { sourceType: "producto", topK: topK + 1 }, admin);
       } catch (error) {
-        throw new ProviderDownError("Voyage AI (embeddings)", error instanceof Error ? error.message : String(error));
+        throw new ProviderDownError("Voyage AI (embeddings)", getErrorMessage(error));
       }
 
       const related = matches
