@@ -11,18 +11,22 @@ centro de soporte operado por agentes de voz. Plan completo del proyecto en
 ## Estado del proyecto
 
 Sesiones completas: **2** (infraestructura — BD, RLS, Storage, seed), **3**
-(frontend — las 14 rutas del mapa, flujo comprador y vendedor) y **4** (RAG
+(frontend — las 14 rutas del mapa, flujo comprador y vendedor), **4** (RAG
 de compras/soporte — indexación vectorial, chat con fuentes citadas,
-`/asistente` y `/soporte`). Heredado sin resolver: `docs/COSTOS.md`/
-`docs/PROMPTS.md` de la sesión 1 (nunca ejecutada). Próxima: sesión 5
-(Skills).
+`/asistente` y `/soporte`) y **5** (Skills de gobernanza en
+`.claude/skills/` + servidor MCP de solo lectura en `mcp/`). Heredado sin
+resolver: `docs/COSTOS.md`/`docs/PROMPTS.md` de la sesión 1 (nunca
+ejecutada). Próxima: sesión 6 (testing).
 
 Detalle fase por fase, decisiones y deuda técnica vigente:
 [`docs/BITACORA.md`](docs/BITACORA.md). Pasada de QA (responsive/a11y/estados)
 de la sesión 3: [`docs/SESION3_CHECKLIST.md`](docs/SESION3_CHECKLIST.md).
 Los 6 casos de prueba del RAG y su calibración de thresholds:
 [`docs/RAG.md`](docs/RAG.md). Arquitectura, modelo de datos y políticas RLS:
-[`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md).
+[`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md). Ciclo de revisión de
+gobernanza de la sesión 5 (Skills sobre código real, hallazgo →
+corrección/deuda): [`docs/REVISION_S5.md`](docs/REVISION_S5.md). Servidor
+MCP: [`mcp/README.md`](mcp/README.md).
 
 ## Comandos
 
@@ -45,6 +49,14 @@ Con `ANTHROPIC_API_KEY`/`VOYAGE_API_KEY` en `.env.local` (sesión 4):
 
 ```bash
 npx tsx scripts/index-all.ts   # (re)ficha todos los productos activos y artículos publicados en knowledge_embeddings
+```
+
+Servidor MCP (`mcp/`, sesión 5 — ver [`mcp/README.md`](mcp/README.md)):
+
+```bash
+cd mcp && npm run dev      # servidor MCP por stdio (tsx watch), reinicia solo al guardar
+cd mcp && npm run build     # build de producción a mcp/dist/ (tsup)
+npx @modelcontextprotocol/inspector npx tsx mcp/src/index.ts   # Inspector: probar tools/resources/prompts sin Claude
 ```
 
 ## Stack
@@ -103,6 +115,11 @@ lib/constants/     Todos los tunables (roles, estados, límites) centralizados y
 types/             Tipos de dominio + database.ts generado por Supabase.
 app/api/v1/        Route Handlers DELGADOS, solo para lo que no puede correr en el
                    navegador (secretos de IA, service role, cookies de sesión).
+mcp/               Servidor MCP (sesión 5, proceso Node aparte de la web, solo
+                   lectura). Solo importa services/, lib/ai/, lib/constants/ y
+                   types/ — nunca app/, components/ ni hooks/. Sus clientes de
+                   Supabase se crean en mcp/src/context.ts (createContext(), por
+                   llamada), NUNCA vía lib/supabase/admin.ts.
 ```
 
 Reglas derivadas (aplican en todas las sesiones):
@@ -115,6 +132,22 @@ Reglas derivadas (aplican en todas las sesiones):
 4. **Un solo camino de datos:** hooks → services → Supabase (RLS). No se
    construye una API REST paralela "por si acaso".
 5. **Todo tunable vive en `lib/constants/`** con un comentario que justifica su valor.
+6. **`mcp/` es un consumidor más de `services/` y `lib/ai/`:** jamás
+   reimplementa lógica de negocio ni importa de `app/`, `components/` o
+   `hooks/`. Lo que un service no expone, se DERIVA componiendo services
+   existentes en `mcp/src/shared/` (documentado ahí, archivo por archivo)
+   — nunca una consulta de negocio nueva "porque era más corto".
+
+## Skills de gobernanza (`.claude/skills/`)
+
+Cuatro Skills cargadas por Claude Code (reiniciar sesión tras crear o
+editar una para que se recarguen): `mercadotech-architecture-enforcer`
+(gate ANTES de crear/mover un archivo — solo ubicación, nunca estilo),
+`mercadotech-code-reviewer` (informe DESPUÉS de escribir, con nota —
+nunca bloquea), `mercadotech-automatic-validator` (veredicto binario
+APROBADA/FALLIDA al cerrar una fase) y `mercadotech-tech-lead` (scorecard
+ponderado ante decisiones de diseño o deuda técnica). Las 4 **reportan,
+nunca editan código** — corregir es siempre un paso humano aparte.
 
 ## Estructura de carpetas
 
@@ -142,7 +175,8 @@ types/                             tipos de dominio + database.ts generado
 supabase/migrations/                 fuente de verdad del esquema, RLS y Storage
 supabase/schema.sql, policies.sql, seed.sql   referencia, NO fuente de verdad
 supabase/tests/                        rls-validation.sql (Fase 2.6)
-docs/                                    ARQUITECTURA.md, BITACORA.md, SESION3_CHECKLIST.md, RAG.md
+mcp/src/                                 tools/, resources/, prompts/, shared/ (servidor MCP, sesión 5)
+docs/                                    ARQUITECTURA.md, BITACORA.md, SESION3_CHECKLIST.md, RAG.md, REVISION_S5.md
 ```
 
 ## Convenciones
@@ -176,4 +210,5 @@ docs/                                    ARQUITECTURA.md, BITACORA.md, SESION3_C
   grep -rl "from \"@/services" components
   grep -rln "@anthropic-ai\|api.voyageai.com" --include="*.ts" . | grep -v node_modules | grep -v lib/ai
   grep -rl "lib/supabase/admin" app components hooks services | grep -v api/v1
+  grep -rl "from \"@/app\|from \"@/components\|from \"@/hooks" mcp/src
   ```

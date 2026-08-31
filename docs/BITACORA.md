@@ -5,16 +5,342 @@ reciente primero**. Está pensada para que alguien que no estuvo en la
 sesión entienda qué se construyó, por qué, y qué quedó pendiente, sin
 tener que leer el código entero.
 
-**Nota sobre las fechas de este documento:** el repositorio no tiene
-ningún commit (`git log --oneline --all` sigue vacío al cierre de la
-sesión 4 — se reverificó con `git rev-list --all --count` → `0`). No hay
-forma de tomar fechas u hashes de commit reales, en ninguna sesión. Las
-fechas de las sesiones 3 y 4 están tomadas de la fecha de modificación de
-archivos representativos de cada fase (no inventadas, pero sí
-aproximadas — varias fases construidas en la misma sesión de trabajo
-pueden compartir fecha). Las secciones de las sesiones 1 y 2 están
-marcadas explícitamente como **reconstruidas** a partir del estado del
-repo, no de un historial real.
+**Nota sobre las fechas de este documento:** el repositorio no tenía
+ningún commit al cierre de la sesión 4 (`git log --oneline --all` seguía
+vacío en ese momento — se había reverificado con `git rev-list --all
+--count` → `0`). Por eso las fechas de las sesiones 1 a 4 salen de la
+fecha de modificación de archivos representativos de cada fase (no
+inventadas, pero sí aproximadas), y las secciones de las sesiones 1 y 2
+están marcadas explícitamente como **reconstruidas**. La sesión 5 es la
+PRIMERA con historial git real: su primer commit (`8611160`) es también
+el commit raíz de todo el repositorio — arrastra consigo, en un único
+commit reconstructivo (`21b28a1`), el estado completo alcanzado por las
+sesiones 2 a 4. Ver el detalle de fechas al abrir la sección de la
+sesión 5.
+
+---
+
+## Sesión 5 — Custom Skills y Protocolo MCP (2026-08-31, commits `8611160`..`fe4d9b0`)
+
+Construye dos cosas nuevas sobre el proyecto existente: cuatro **Skills**
+de gobernanza para Claude Code (`.claude/skills/`) y un **servidor MCP**
+de solo lectura (`mcp/`) que expone el catálogo, el asistente conversacional
+y estadísticas de la tienda a cualquier cliente MCP, reutilizando
+`services/`/`lib/ai/` sin duplicar lógica. Spec:
+[`MercadoTech_sesion5.md`](../MercadoTech_sesion5.md). Fases ejecutadas:
+5.1 a 5.6.
+
+**Nota sobre fechas y commits:** los 11 commits de esta sesión
+(`8611160` a `fe4d9b0`, `git log --oneline` completo) están TODOS fechados
+`2026-08-31` — a diferencia de las sesiones 3 y 4, esta vez las fechas de
+commit son reales (no aproximadas por mtime de archivo), pero reflejan un
+solo día de trabajo, no el calendario real de cada fase. El commit raíz
+del repo es `8611160` (Skills de la Fase 5.1); el segundo, `21b28a1`, es
+una reconstrucción retroactiva de TODO lo alcanzado en las sesiones 2 a 4
+(no es trabajo de esta sesión, solo quedó commiteado durante ella) — el
+resto de los commits de `mcp/` y del lab 5.6 son posteriores a ese punto.
+
+### Fase 5.1 — Skills de gobernanza (commit `8611160`)
+
+**Construido:** `.claude/skills/{mercadotech-architecture-enforcer,
+mercadotech-code-reviewer,mercadotech-automatic-validator,
+mercadotech-tech-lead}/SKILL.md` — cuatro manuales de puesto con
+frontmatter (`name`, `description` como disparador) y reglas ancladas en
+archivos reales del repo, no en dogma genérico.
+
+**Decisión — las Skills se commitean desde el primer commit** (lección 1
+de la Guía ReadHub, `MercadoTech_sesion5.md`): a diferencia del proyecto
+de referencia, donde quedaron sin versionar y se perdieron del historial.
+
+**Problema:** una Skill recién creada no se activa en la conversación que
+la creó — hace falta reiniciar la sesión de Claude Code para que la
+descubra (decisión 9 de la spec). **Confirmado en la práctica**: la
+sesión del lab 5.6 se corrió en una conversación nueva a propósito, y ahí
+sí las 4 Skills respondieron a su nombre.
+
+**Corrección sobre la spec:** `mercadotech-architecture-enforcer/SKILL.md`
+trae su propio párrafo de corrección: la regla "¿alguien fuera de
+`lib/ai/` importando `@huggingface/*`?" que trae `MercadoTech_sesion5.md`
+(Fase 5.1) quedó desactualizada — la sesión 4 reemplazó Hugging Face por
+Voyage AI + Claude. La Skill ya usa el grep real de `CLAUDE.md`
+(`@anthropic-ai\|api.voyageai.com`), no la regla vieja de la spec.
+
+### Fase 5.2 — Scaffolding del servidor MCP (commit `85fa063`)
+
+**Construido:** `mcp/package.json` (`@modelcontextprotocol/sdk ^1.30.0`,
+`zod ^3.25.76`, dev: `tsup ^8.5.1`/`tsx`/`typescript`), `mcp/tsconfig.json`
+(extiende el de la raíz, alias `@/*` → `../*`), `mcp/tsup.config.ts`,
+`mcp/src/{index,server,env,context}.ts`,
+`mcp/src/lib/{tool-result,errors,safe}.ts`.
+
+**Decisión 1 — `context.ts` no importa `lib/supabase/admin.ts`:**
+`createContext()` construye `{anon, admin}` con `@supabase/supabase-js`
+directo. La spec asumía que `admin.ts` importa `server-only` y por eso
+"revienta bajo Node puro" — **verificado línea por línea contra el
+archivo real y es falso**, `admin.ts` no importa ese paquete.
+`scripts/index-all.ts` (sesión 4) ya lo prueba usándolo directo con
+`tsx`. La razón real es otra: `admin.ts` documenta en su cabecera una
+lista cerrada de importadores autorizados (Route Handlers, Server
+Actions, `scripts/`) que `mcp/` deliberadamente no integra, para no
+acoplar el servidor MCP a una convención de la app web.
+
+**Decisión 2 — `env.ts` reutiliza la `.env.local` de la raíz** (no una
+propia de `mcp/`), mismo `process.loadEnvFile` que `scripts/index-all.ts`
+— una sola fuente de credenciales.
+
+**Decisión 5 — contexto por llamada, no al arrancar:** `createContext()`
+se invoca DENTRO de cada handler; el proceso vive horas y un cliente
+único quedaría con su conexión/credenciales congeladas.
+
+**Problema — stdout es sagrado:** con transporte stdio, stdout transporta
+JSON-RPC — un `console.log` sin redirigir corrompe la sesión completa.
+**Resuelto:** la línea 1 de `mcp/src/index.ts` redirige
+`console.log/info/warn` a `stderr`, y TODO lo demás (SDK incluido) se
+importa dinámico (`await import(...)`) dentro de `main()` — un `import`
+estático se evalúa antes de que corra cualquier línea del cuerpo del
+archivo (se "hoistea"), así que si una dependencia transitiva hiciera un
+`console.log` a nivel de módulo, se ejecutaría ANTES de la redirección
+igual. El import dinámico garantiza el orden real.
+
+**Problema — ¿por qué `zod@^3.25.76` exacto, no cualquier v3?**
+Verificado en el código instalado (`mcp/node_modules`): el propio SDK
+compilado (`@modelcontextprotocol/sdk/dist/esm/types.js`) hace
+`import * as z from 'zod/v4'` — un subpath de compatibilidad que zod
+recién empezó a publicar en esa versión. Sin él, el SDK no resuelve. No
+es una superstición heredada de ReadHub, es una dependencia real
+verificable.
+
+### Fase 5.3 — 10 Tools (commit `df65404`)
+
+**Construido:** `mcp/src/tools/{define-tool,index,search-products,
+get-product,list-categories,semantic-search-products,ask-assistant,
+compare-products,find-related-products,summarize-reviews,
+get-store-stats,get-order-status}.ts`, `mcp/src/shared/{products,stats}.ts`
+(primeras derivaciones).
+
+**Decisión 3 — cliente admin en `semantic_search_products`,
+`ask_assistant` y `find_related_products`:** `knowledge_embeddings_select_authenticated`
+(sesión 4) exige `authenticated`; el MCP no tiene sesión de usuario.
+
+**Decisión 4 — cliente admin (parcial) en `get_store_stats` y
+`get_order_status`:** `orders`/`order_items` solo autorizan
+comprador/vendedor-con-ítems/admin; `get_order_status` expone
+ÚNICAMENTE estado/fecha/total/ítems-snapshot, nunca `buyer_id`.
+
+**Decisión 6 — derivaciones en `mcp/src/shared/`, no services nuevos:**
+`getCategoriesWithCounts`/`getTopSellingProducts`/`getStoreStats`
+componen `category.service`/`product.service` existentes; `getStoreStats`
+hace consultas agregadas directas SOLO donde de verdad no hay service que
+componer (top vendidos sobre `order_items`), documentado como excepción,
+no como patrón.
+
+**Decisión 8 — cliente SIEMPRE explícito:** toda llamada a un service
+desde una tool pasa `anon`/`admin` del contexto — nunca se deja caer al
+default `= createClient()` (cliente de navegador) de la firma del
+service, que sería inofensivo pero incorrecto por accidente.
+
+**Desviación respecto a la spec:** la tabla de la Fase 5.3
+(`MercadoTech_sesion5.md`) dice que la tool #2 (`get_product`) reutiliza
+también `review.service.getAverage` — el código real NO la llama:
+`product.service.getProductById` ya calcula `average_rating`/`review_count`
+en el mismo `mapProductRow` (join a `reviews(rating)`, sesión 3), así que
+llamarla aparte sería una segunda consulta para un dato que ya viene
+armado. Documentado en el comentario de `tools/get-product.ts`.
+
+**Desviación respecto a la spec:** la tabla de la Fase 5.3 agrupa las
+tools #4/#5/#7/#8 como "requiere token HF" por igual. En el código real,
+solo #4/#5/#7 tocan `knowledge_embeddings`/Voyage; #8
+(`summarize_reviews`) reutiliza `lib/ai/completion.generateCompletion`
+(Claude) sobre reseñas ya públicas — no necesita cliente admin ni toca
+embeddings. `mcp/README.md` ya refleja el agrupamiento real ("las 4 tools
+semánticas: #4, #5, #7 y la mitad de #9").
+
+### Fase 5.4 — 7 Resources y 5 Prompts (commit `49c8a37`)
+
+**Construido:** `mcp/src/resources/{define-resource,index,info,products,
+product-detail,categories,sellers,faq,stats}.ts`,
+`mcp/src/prompts/{define-prompt,build-prompt-result,index,
+describir-producto,comparar-productos,redactar-respuesta-pregunta,
+resumen-de-resenas,generar-articulo-faq}.ts`,
+`mcp/src/shared/{faq,questions,sellers,summarize}.ts` (derivaciones
+restantes) y `mcp/src/lib/safe-resource.ts`.
+
+**Decisión 5 — `sellers/{sellerId}` expone SOLO `display_name` + productos
+activos:** `profiles` no tiene SELECT público (deuda técnica #1 de la
+sesión 3) — ni siquiera se PIDEN `phone`/`avatar_path` en la consulta de
+`shared/sellers.ts` (no es "se ocultan al responder": no se traen de la
+base). Cliente admin porque `profiles_select_own_or_admin` no alcanza
+para leer el perfil de un tercero.
+
+**Regla de la lección 7 (ReadHub), aplicada:** cada resource va envuelto
+en `safeRead`/`safeList` (`mcp/src/lib/safe-resource.ts`) — un resource
+caído nunca tumba `resources/list` completo.
+
+**Problema — errores `PostgrestError` mostraban `"[object Object]"`:**
+detectado probando la degradación de `resources/list` con Supabase
+detenido (verificación de la propia Fase 5.4). `error instanceof Error ?
+error.message : String(error)` falla porque el cliente de
+`@supabase-js` rechaza con un objeto plano (`{message, code, details,
+hint}`), no siempre una instancia real de `Error`. **Resuelto:**
+`mcp/src/lib/errors.ts` exporta `getErrorMessage()` — intenta
+`Error.message`, después `.message` de cualquier objeto que lo tenga como
+string, y solo como último recurso `JSON.stringify`.
+
+**Problema — un `z.array(z.string())` en un Prompt nunca recibe valor
+real:** descubierto probando `comparar_productos` con el Inspector
+(`"Expected array, received string"`). El protocolo MCP tipa
+`GetPromptRequestParams.arguments` como `{[key: string]: string}` — un
+Prompt (a diferencia de una Tool, cuyo `tools/call` sí acepta JSON
+arbitrario) NUNCA puede recibir un array, sea cual sea el `argsSchema`.
+**Resuelto:** `ids` es un string de ids separados por coma, parseado y
+validado (2-4) dentro del handler — límite del protocolo, no elección de
+diseño.
+
+**Problema — casts genéricos en `define-tool.ts`/`define-prompt.ts`:**
+`server.tool(...)`/`server.registerPrompt(...)` son genéricos del SDK;
+envueltos dentro de otra función genérica (`defineTool<Shape>`,
+`definePrompt<Shape>`), TypeScript no puede probar que un callback armado
+a partir de un `Shape` todavía ABSTRACTO satisface la sobrecarga del SDK
+para ESE `Shape` — confirmado con un archivo de prueba aparte donde la
+llamada DIRECTA (sin el wrapper genérico) compila limpia sin cast.
+**Resuelto** con `as unknown as <Callback><Shape>` (el mismo doble-cast
+que sugiere el propio error de `tsc`) SOLO en los dos helpers genéricos;
+cada `tools/*.ts`/`prompts/*.ts` real sigue type-checkeando en serio
+porque llama a los helpers con un `Shape` concreto.
+
+### Fase 5.5 — Registro y validación (commit `088d30f`)
+
+**Construido:** `.mcp.json` en la raíz, `mcp/README.md` (arquitectura,
+decisiones, tabla completa de tools/resources/prompts, síntomas).
+
+**Decisión 7 — el alias `@/*` se resuelve dos veces, por separado:** en
+dev (`tsx`), `mcp/tsconfig.json` lo resuelve vía `paths`. En build,
+`tsup`/`esbuild` NO leen `tsconfig.json` para resolver imports en tiempo
+de bundling (solo para type-checking) — hubo que declarar el mismo alias
+otra vez en `mcp/tsup.config.ts` (`esbuildOptions.alias`), apuntando a la
+raíz del repo (un nivel arriba de `mcp/`). Sin esa segunda declaración,
+`npm run build` compila pero `node dist/index.js` falla al no encontrar
+`@/services/...`.
+
+**Problema — `npm run lint` de la raíz saltó a 174 problemas** en cuanto
+`mcp/dist/` existió por primera vez (tras el primer `npm run build`
+dentro de `mcp/`): ESLint escaneaba el bundle de terceros (el SDK de MCP
+vendorizado y minificado por `tsup`) como si fuera código propio.
+**Resuelto:** `eslint.config.mjs` suma `"mcp/dist/**"` a `ignores`
+(`mcp/node_modules` ya caía bajo `node_modules/**`, que matchea en
+cualquier profundidad, pero una carpeta con otro nombre como `dist`
+necesita su propia entrada explícita). También se sumó `"mcp"` al
+`exclude` de `tsconfig.json` de la raíz — sin eso, `npm run type-check`
+de la raíz barría `mcp/src/` con las opciones del proyecto web en vez de
+las suyas.
+
+### Fase 5.6 — Lab de gobernanza aplicada (commits `9fe3292`..`fe4d9b0`)
+
+**Construido:** [`docs/REVISION_S5.md`](REVISION_S5.md) — ciclo completo:
+scorecard de `mercadotech-tech-lead` sobre `services/`+`hooks/` completos
+(nota global **Alto** en los 6 criterios), informe de
+`mercadotech-code-reviewer` sobre `lib/ai/` + 3 Route Handlers +
+`mcp/src/` completo (**9/10**, 0 críticos), consolidación contra la
+lista blanca de deuda técnica ya documentada en este archivo, y veredicto
+final de `mercadotech-automatic-validator`.
+
+**Resultado del lab, en cifras:** 10 hallazgos consolidados → **5
+corregidos** (uno por commit, de menor a mayor riesgo, cada uno
+verificado con `lint`+`type-check`+`build`: log de arranque desactualizado
+en `mcp/src/index.ts`; cast sin comentario en `mcp/src/shared/stats.ts`;
+un string en voseo aislado en `hooks/useSellerOrders.ts`; cast de
+`metadata.title` sin verificar tipo en
+`mcp/src/tools/find-related-products.ts`; duplicación de manejo de
+errores en 8 hooks, corregida extendiendo `lib/utils.ts:getErrorMessage`
+con un `fallback` opcional) → **5 aceptados como deuda** (1 nueva —
+`mcp/src/shared/products.ts:getProductsByIds` confunde "id no encontrado"
+con "proveedor caído", con propuesta para sesión 6 — y 4 ya documentadas
+en este archivo: nombres de usuario no legibles, stock no repuesto al
+cancelar, `status` único en pedidos multi-vendedor, búsqueda `ilike`
+simple) → **0 falsos positivos**. Ninguna corrección cambió comportamiento
+visible de la app ni contratos de `services/`.
+
+**Decisión 9, confirmada en la práctica:** el lab se corrió en una
+conversación nueva de Claude Code a propósito, para que las 4 Skills
+recién creadas en la Fase 5.1 estuvieran cargadas.
+
+**Decisión 10, aplicada:** cada hallazgo se cruzó contra la lista blanca
+de deuda técnica de este archivo (secciones de sesión 3 y sesión 4) antes
+de asignar veredicto — lo whitelisteado se justificó con cita, nunca se
+re-marcó como hallazgo nuevo.
+
+---
+
+## Estado de los criterios de aceptación de la sesión
+
+| Criterio | Estado | Evidencia |
+|---|---|---|
+| MCP Inspector lista y ejecuta las 10 tools sin errores con datos del seed | ✅ | `mcp/README.md`, sección "Cómo probarlo" — comandos CLI del Inspector documentados como los usados para reunir la evidencia de ese README (tabla de las 10 tools con service/cliente reales) |
+| `ask_assistant` desde MCP produce la misma calidad que la UI web | ✅ | `mcp/README.md`, tool #5 — reutiliza `chat.service.ask` tal cual, el mismo pipeline búsqueda→contexto→completion que `/asistente`/`/soporte` (sesión 4), sin reimplementación |
+| Con Supabase detenido, `resources/list` sigue respondiendo | ✅ | `mcp/src/lib/safe-resource.ts` (`safeList`/`safeRead`) — verificado durante la Fase 5.4 (evidencia del bug real de `"[object Object]"` encontrado en esa misma prueba, arriba) |
+| Ninguna tool/resource expone teléfono, email ni nombre de comprador | ✅ | `mcp/src/shared/sellers.ts` solo pide `id, display_name, role`; `mcp/src/tools/get-order-status.ts` descarta `buyer_id` explícito del `Order` completo que devuelve `getOrderById` |
+| La Skill validator termina en APROBADA sobre el estado final del repo | ✅ | `docs/REVISION_S5.md`, sección final — salida literal `VALIDACIÓN APROBADA` |
+| `type-check` de la raíz Y de `mcp/` pasan; el build de `mcp/` arranca | ✅ | Reverificado en esta sesión: `npm run type-check` (raíz) exit 0, `npx tsc --noEmit` dentro de `mcp/` exit 0, `npm run build` (tsup) dentro de `mcp/` exit 0 |
+
+## Deuda técnica y limitaciones conocidas (nuevas de esta sesión)
+
+1. **`mcp/src/shared/products.ts:getProductsByIds` no distingue "id no
+   encontrado" de "proveedor caído".** `Promise.allSettled` descarta
+   cualquier rechazo por igual — una caída real de Supabase se ve
+   idéntica a un id inválido/inactivo/borrado. `compare_products` puede
+   terminar mostrando "0 de N ids son productos válidos" cuando el
+   problema real es un timeout de conexión. Hallazgo del lab 5.6,
+   aceptado como deuda (`docs/REVISION_S5.md`, hallazgo #6): la
+   corrección correcta exige decidir qué código de error de Postgrest
+   distingue ambos casos (`PGRST116` = 0 filas vs. cualquier otro), sin
+   tocar el contrato ya documentado de la función ("descarta huérfanos en
+   silencio"). Sin dueño de sesión asignado.
+2. **`shared/stats.getCategoriesWithCounts` es N+1 a propósito** (una
+   consulta por categoría) — aceptable con 8 categorías, no escalaría a
+   cientos sin una agregación real. Documentado en `mcp/README.md`.
+3. **`resources/products/{id}`'s `list` recorre hasta 5 páginas** (60
+   productos) para enumerar instancias — acotado, no exhaustivo si el
+   catálogo creciera mucho más. Documentado en `mcp/README.md`.
+4. **La decisión de NO hacer el monorepo (npm workspaces/Turborepo) nunca
+   se documentó en `docs/ARQUITECTURA.md`**, pese a que la propia spec
+   (`MercadoTech_sesion5.md`, "Nota opcional: monorepo") lo pide
+   explícitamente si se opta por no hacerlo ("decidir con el criterio del
+   tech-lead y documentar la decisión"). Confirmado con
+   `grep -n "monorepo\|workspace\|Turborepo" docs/ARQUITECTURA.md` →
+   vacío. El código sí sigue el patrón simple (carpeta `mcp/` con su
+   propio `package.json`, importando por alias `@/*`) — solo falta el
+   registro escrito de por qué.
+5. **Sin tests automatizados en `mcp/`** — `mcp/package.json` no tiene
+   script `test` todavía; llega en la sesión 6 (el validator ya lo marca
+   "N/A" hasta entonces).
+
+## Pendientes para la sesión 6 y heredados
+
+- **Heredado de la sesión 1 (no ejecutada):** sigue sin `docs/COSTOS.md`
+  ni `docs/PROMPTS.md` — sin cambios desde el cierre de la sesión 3.
+- **Vista `public_profiles`** (deuda técnica #1 de la sesión 3) — la
+  sesión 5 tampoco la necesitó: `sellers/{sellerId}` resuelve el mismo
+  problema con una consulta admin acotada a solo `display_name`, sin
+  crear la vista.
+- **Trigger de reposición de stock al cancelar** (deuda técnica #2 de la
+  sesión 3) — sin dueño de sesión asignado todavía.
+- **Estado de pedido por vendedor/ítem** (deuda técnica #3 de la
+  sesión 3) — sin dueño de sesión asignado todavía.
+- **La sugerencia de ticket en modo soporte no es 100% consistente**
+  (deuda técnica #1 de la sesión 4) — sin dueño de sesión asignado.
+- **Calibración de threshold con tráfico real** (deuda técnica #2 de la
+  sesión 4) — sin dueño de sesión asignado.
+- **`getProductsByIds` no distingue "no encontrado" de "proveedor
+  caído"** (deuda técnica #1 de esta sesión, arriba) — propuesta:
+  distinguir por código de error de Postgrest.
+- **Documentar en `docs/ARQUITECTURA.md` la decisión de no hacer el
+  monorepo** (deuda técnica #4 de esta sesión, arriba) — pendiente
+  simple, sin dueño de sesión asignado.
+- **Tests automatizados** — sesión 6, tanto del proyecto web como de
+  `mcp/` (`npm run test` no existe todavía en ninguno de los dos).
+- **Agente de voz** — sesión 8. `get_order_status` (tool #10 del MCP) ya
+  está escrita pensando en que la reutilice: solo lectura, sin datos del
+  comprador, documentado explícitamente en el propio archivo.
 
 ---
 
