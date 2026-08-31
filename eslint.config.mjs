@@ -24,6 +24,13 @@ const eslintConfig = [
       // Carpeta de trabajo interna del Supabase CLI (archivos efímeros que
       // regenera en cada `supabase start`, no forman parte del repo lógico).
       "supabase/.temp/**",
+      // `mcp/node_modules` ya cae bajo `node_modules/**` de arriba (el
+      // patrón matchea en cualquier profundidad), pero `mcp/dist` NO:
+      // sin este ignore, `npm run build` en `mcp/` deja un bundle de
+      // terceros (el SDK de MCP vendorizado por tsup, minificado) que
+      // ESLint intenta lintear como si fuera código propio — 174
+      // problemas falsos, todos del SDK, ninguno de este repo.
+      "mcp/dist/**",
     ],
   },
 ];
