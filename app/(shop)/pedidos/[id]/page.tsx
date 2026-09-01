@@ -62,7 +62,9 @@ export default function PedidoDetallePage({
 
         {order.status === "pendiente" ? (
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger render={<Button variant="destructive" />}>Cancelar pedido</DialogTrigger>
+            <DialogTrigger render={<Button variant="destructive" data-testid="order-cancel-trigger" />}>
+              Cancelar pedido
+            </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>¿Cancelar este pedido?</DialogTitle>
@@ -72,7 +74,12 @@ export default function PedidoDetallePage({
               </DialogHeader>
               <DialogFooter>
                 <DialogClose render={<Button variant="outline" />}>Volver</DialogClose>
-                <Button variant="destructive" onClick={handleConfirmCancel} disabled={cancelling}>
+                <Button
+                  variant="destructive"
+                  data-testid="order-cancel-confirm"
+                  onClick={handleConfirmCancel}
+                  disabled={cancelling}
+                >
                   {cancelling ? "Cancelando..." : "Sí, cancelar"}
                 </Button>
               </DialogFooter>

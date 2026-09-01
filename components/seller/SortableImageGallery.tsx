@@ -124,6 +124,7 @@ export function SortableImageGallery({ images, maxImages, onFilesSelected, onRem
 
       <input
         ref={inputRef}
+        data-testid="product-image-input"
         type="file"
         accept="image/jpeg,image/png,image/webp"
         multiple

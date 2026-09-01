@@ -22,6 +22,7 @@ export function ProductCard({ product, similarity }: ProductCardProps) {
   return (
     <Link
       href={`/producto/${product.id}`}
+      data-testid="product-card"
       className="group flex flex-col gap-2 rounded-lg border border-border bg-card p-3 transition-colors hover:border-primary/50"
     >
       <div className="relative aspect-square overflow-hidden rounded-md bg-muted">

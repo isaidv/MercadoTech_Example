@@ -58,6 +58,7 @@ export function BuyBox({
           </label>
           <select
             id="buybox-quantity"
+            data-testid="buybox-quantity"
             value={quantity}
             onChange={(event) => setQuantity(Number(event.target.value))}
             className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm"
@@ -74,7 +75,7 @@ export function BuyBox({
       {!isAuthenticated ? (
         <Button render={<Link href="/login" />}>Inicia sesión para comprar</Button>
       ) : (
-        <Button disabled={!canBuy} onClick={() => onAddToCart?.(quantity)}>
+        <Button data-testid="buybox-add-to-cart" disabled={!canBuy} onClick={() => onAddToCart?.(quantity)}>
           {canBuy ? "Agregar al carrito" : disabledReason}
         </Button>
       )}

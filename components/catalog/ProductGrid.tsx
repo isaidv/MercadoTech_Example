@@ -55,7 +55,7 @@ export function ProductGrid({ items, loading, emptyAction, emptyTitle, emptyDesc
   }
 
   return (
-    <div className={GRID_CLASSES}>
+    <div data-testid="product-grid" className={GRID_CLASSES}>
       {items.map((product) => (
         <ProductCard key={product.id} product={product} similarity={product.similarity} />
       ))}

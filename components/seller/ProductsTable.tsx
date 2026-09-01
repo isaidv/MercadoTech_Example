@@ -31,7 +31,9 @@ function DeleteProductDialog({ title, onConfirm }: { title: string; onConfirm: (
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="ghost" size="icon" aria-label={`Eliminar "${title}"`} />}>
+      <DialogTrigger
+        render={<Button variant="ghost" size="icon" data-testid="seller-product-delete-trigger" aria-label={`Eliminar "${title}"`} />}
+      >
         <Trash2 className="size-4" aria-hidden="true" />
       </DialogTrigger>
       <DialogContent>
@@ -46,6 +48,7 @@ function DeleteProductDialog({ title, onConfirm }: { title: string; onConfirm: (
           <DialogClose render={<Button variant="outline" />}>Volver</DialogClose>
           <Button
             variant="destructive"
+            data-testid="seller-product-delete-confirm"
             onClick={() => {
               onConfirm();
               setOpen(false);
@@ -74,7 +77,7 @@ export function ProductsTable({ products, onToggleActive, onDelete }: ProductsTa
       </TableHeader>
       <TableBody>
         {products.map((product) => (
-          <TableRow key={product.id}>
+          <TableRow key={product.id} data-testid="seller-product-row">
             <TableCell>
               <div className="flex items-center gap-3">
                 <div className="relative size-12 shrink-0 overflow-hidden rounded-md">
@@ -102,7 +105,12 @@ export function ProductsTable({ products, onToggleActive, onDelete }: ProductsTa
                 >
                   <Pencil className="size-4" aria-hidden="true" />
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => onToggleActive(product.id, !product.is_active)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  data-testid="seller-product-toggle-active"
+                  onClick={() => onToggleActive(product.id, !product.is_active)}
+                >
                   {product.is_active ? "Desactivar" : "Activar"}
                 </Button>
                 <DeleteProductDialog title={product.title} onConfirm={() => onDelete(product.id)} />

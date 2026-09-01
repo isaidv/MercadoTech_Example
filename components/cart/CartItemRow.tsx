@@ -28,7 +28,7 @@ export function CartItemRow({ item, onQuantityChange, onRemove }: CartItemRowPro
         <p className="flex-1 text-sm font-medium text-muted-foreground">
           Este producto ya no está disponible
         </p>
-        <Button variant="ghost" size="icon" onClick={onRemove} aria-label="Quitar del carrito">
+        <Button variant="ghost" size="icon" data-testid="cart-item-remove" onClick={onRemove} aria-label="Quitar del carrito">
           <Trash2 className="size-4" aria-hidden="true" />
         </Button>
       </div>
@@ -54,6 +54,7 @@ export function CartItemRow({ item, onQuantityChange, onRemove }: CartItemRowPro
 
       <select
         aria-label={`Cantidad de ${product.title}`}
+        data-testid="cart-item-quantity"
         value={item.quantity}
         onChange={(event) => onQuantityChange(Number(event.target.value))}
         className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm"
@@ -65,7 +66,7 @@ export function CartItemRow({ item, onQuantityChange, onRemove }: CartItemRowPro
         ))}
       </select>
 
-      <Button variant="ghost" size="icon" onClick={onRemove} aria-label="Quitar del carrito">
+      <Button variant="ghost" size="icon" data-testid="cart-item-remove" onClick={onRemove} aria-label="Quitar del carrito">
         <Trash2 className="size-4" aria-hidden="true" />
       </Button>
     </div>

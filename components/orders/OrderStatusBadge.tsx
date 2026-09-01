@@ -9,7 +9,7 @@ type OrderStatusBadgeProps = {
 
 export function OrderStatusBadge({ status, className }: OrderStatusBadgeProps) {
   return (
-    <Badge variant={ORDER_STATUS_BADGE_VARIANT[status]} className={className}>
+    <Badge data-testid="order-status" variant={ORDER_STATUS_BADGE_VARIANT[status]} className={className}>
       {ORDER_STATUS_LABELS[status]}
     </Badge>
   );

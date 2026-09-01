@@ -69,6 +69,7 @@ export function ProductForm({
         <Label htmlFor="product-title">Título</Label>
         <Input
           id="product-title"
+          data-testid="product-form-title"
           value={values.title}
           onChange={(event) => onChange("title", event.target.value)}
           aria-invalid={!!errors.title}
@@ -113,6 +114,7 @@ export function ProductForm({
           <Label htmlFor="product-price">Precio (S/)</Label>
           <Input
             id="product-price"
+            data-testid="product-form-price"
             type="number"
             min={0}
             step="0.01"
@@ -126,6 +128,7 @@ export function ProductForm({
           <Label htmlFor="product-stock">Stock</Label>
           <Input
             id="product-stock"
+            data-testid="product-form-stock"
             type="number"
             min={0}
             step="1"
@@ -140,7 +143,7 @@ export function ProductForm({
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="product-category">Categoría</Label>
         <Select value={values.categoryId} onValueChange={(value) => onChange("categoryId", value ?? "")}>
-          <SelectTrigger id="product-category" className="w-full">
+          <SelectTrigger id="product-category" data-testid="product-form-category-trigger" className="w-full">
             <SelectValue placeholder="Elegí una categoría" />
           </SelectTrigger>
           <SelectContent>
@@ -154,7 +157,7 @@ export function ProductForm({
         {errors.categoryId ? <p className="text-sm text-destructive">{errors.categoryId}</p> : null}
       </div>
 
-      <Button type="submit" disabled={submitting} className="self-end">
+      <Button type="submit" data-testid="product-form-submit" disabled={submitting} className="self-end">
         {submitting ? "Guardando..." : mode === "create" ? "Publicar producto" : "Guardar cambios"}
       </Button>
     </form>

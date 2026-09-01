@@ -28,6 +28,7 @@ export function OrderKanbanCard({ order, draggable }: OrderKanbanCardProps) {
   return (
     <div
       ref={setNodeRef}
+      data-testid={`kanban-card-${order.id}`}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       {...(draggable ? attributes : {})}
       {...(draggable ? listeners : {})}

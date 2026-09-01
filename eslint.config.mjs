@@ -38,6 +38,21 @@ const eslintConfig = [
       "coverage/**",
     ],
   },
+  {
+    // Fase 6.4 — `e2e/fixtures/test.ts` extiende `test` de Playwright con
+    // `base.extend({ buyerPage: async ({page}, use) => ... })`: ese
+    // segundo parámetro se llama literalmente `use`, por convención del
+    // propio Playwright (ver su documentación de fixtures), nada que ver
+    // con el `use()` de React. `react-hooks/rules-of-hooks` (heredada de
+    // `next/core-web-vitals`) no distingue el nombre del contexto y lo
+    // marca como un Hook de React mal llamado — falso positivo conocido
+    // al mezclar Playwright con este plugin. `e2e/` no es código React
+    // (es Node/Playwright puro), así que la regla no aplica ahí.
+    files: ["e2e/**/*.ts"],
+    rules: {
+      "react-hooks/rules-of-hooks": "off",
+    },
+  },
 ];
 
 export default eslintConfig;

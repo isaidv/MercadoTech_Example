@@ -21,6 +21,7 @@ export function CartIndicator({ count, className }: CartIndicatorProps) {
       <ShoppingCart className="size-4" aria-hidden="true" />
       {count > 0 ? (
         <span
+          data-testid="cart-indicator-count"
           aria-hidden="true"
           className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground"
         >

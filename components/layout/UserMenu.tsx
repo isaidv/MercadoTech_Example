@@ -42,7 +42,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="rounded-full" />}>
+      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="rounded-full" data-testid="user-menu" />}>
         <Avatar size="sm">
           <AvatarFallback>{initials(user.display_name)}</AvatarFallback>
         </Avatar>
@@ -72,7 +72,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onClick={onLogout}>
+        <DropdownMenuItem variant="destructive" data-testid="user-menu-logout" onClick={onLogout}>
           <LogOut aria-hidden="true" />
           Cerrar sesión
         </DropdownMenuItem>

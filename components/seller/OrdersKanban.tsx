@@ -40,6 +40,7 @@ function KanbanColumn({ status, orders }: { status: OrderStatus; orders: SellerO
   return (
     <div
       ref={setNodeRef}
+      data-testid={`kanban-column-${status}`}
       className={cn(
         "flex min-h-48 flex-col gap-2 rounded-lg border border-border bg-muted/30 p-3",
         isOver && droppable && "border-primary bg-primary/5",

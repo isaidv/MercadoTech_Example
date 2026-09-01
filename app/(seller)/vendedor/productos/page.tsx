@@ -24,14 +24,20 @@ export default function VendedorProductosPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <h1 className="font-heading text-2xl font-semibold">Mis productos</h1>
-        <Button render={<Link href="/vendedor/publicar" />}>Publicar producto</Button>
+        <Button data-testid="seller-publish-link" render={<Link href="/vendedor/publicar" />}>
+          Publicar producto
+        </Button>
       </div>
 
       {products.length === 0 ? (
         <EmptyState
           title="Todavía no publicaste productos"
           description="Creá tu primer producto para empezar a vender."
-          action={<Button render={<Link href="/vendedor/publicar" />}>Publicar producto</Button>}
+          action={
+            <Button data-testid="seller-publish-link" render={<Link href="/vendedor/publicar" />}>
+              Publicar producto
+            </Button>
+          }
         />
       ) : (
         <ProductsTable products={products} onToggleActive={toggleActive} onDelete={remove} />
