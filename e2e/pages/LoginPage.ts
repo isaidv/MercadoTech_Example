@@ -16,4 +16,11 @@ export class LoginPage {
     await this.page.getByTestId("login-submit").click();
     await this.page.getByTestId("user-menu").waitFor();
   }
+
+  /** Agregada en la Fase 6.5 (paso 8 del flujo comprador) — sin testid nuevo: usa los mismos `user-menu`/`user-menu-logout` de la Fase 6.4. */
+  async logout() {
+    await this.page.getByTestId("user-menu").click();
+    await this.page.getByTestId("user-menu-logout").click();
+    await this.page.getByTestId("user-menu").waitFor({ state: "detached" });
+  }
 }

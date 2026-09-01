@@ -21,6 +21,12 @@ export class OrdersPage {
     await expect(this.page.getByTestId("order-status")).toHaveText(label);
   }
 
+  /** Agregada en la Fase 6.5 (paso 6: "detalle pendiente con snapshots") — sin testid nuevo: `OrderItemsTable` ya es una `<table>` semántica, `role=row` alcanza. */
+  async expectItemSnapshot(titleSnapshot: string, quantity: number) {
+    const row = this.page.getByRole("row", { name: new RegExp(titleSnapshot) });
+    await expect(row).toContainText(String(quantity));
+  }
+
   async cancel() {
     await this.page.getByTestId("order-cancel-trigger").click();
     await this.page.getByTestId("order-cancel-confirm").click();

@@ -36,6 +36,15 @@ const eslintConfig = [
       // código propio, y se regenera en cada corrida (ya está en
       // `.gitignore`). Mismo motivo que `mcp/dist/**` arriba.
       "coverage/**",
+      // Reporte HTML de Playwright (Fase 6.5, `npm run test:e2e`) — cuando
+      // un test falla, el reporte empaqueta su propio visor de trazas
+      // (CodeMirror, minificado por Playwright) dentro de
+      // `e2e/playwright-report/trace/assets/`. Mismo motivo que
+      // `mcp/dist/**`/`coverage/**` arriba: JS de terceros, no código
+      // propio, y ya está en `.gitignore`. `e2e/test-results/` (screenshots/
+      // videos/traces de fallos) igual, por las dudas.
+      "e2e/playwright-report/**",
+      "e2e/test-results/**",
     ],
   },
   {
