@@ -1,16 +1,38 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { SortableImageGallery } from "@/components/seller/SortableImageGallery";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LoadingState } from "@/components/shared/LoadingState";
 import { PRODUCT_CONDITIONS, type ProductCondition } from "@/lib/constants/roles";
 import { MAX_IMAGES_PER_PRODUCT } from "@/lib/constants/product";
 import type { ProductFormValues, ProductFormErrors } from "@/lib/validators/product";
 import type { Category, GalleryImageItem } from "@/types/product";
+
+/**
+ * Fase 7.2 — `dynamic import` (decisión 4, único candidato de mayor
+ * First Load JS de los tres: 307-308 kB en `/vendedor/publicar` y
+ * `/vendedor/productos/[id]/editar`, ver docs/PERFORMANCE.md). Saca
+ * `@dnd-kit/*` del bundle inicial de ambas rutas — el formulario entero
+ * no se usa hasta que el vendedor entra a publicar/editar, así que no
+ * hay pérdida de interactividad percibida. `ssr: false`: la galería
+ * arrastra con el mouse/teclado del navegador, no tiene nada que
+ * renderizar en el servidor.
+ */
+const SortableImageGallery = dynamic(
+  () => import("@/components/seller/SortableImageGallery").then((m) => m.SortableImageGallery),
+  {
+    ssr: false,
+    // `LoadingState` no tiene una prop `label` — solo `lines`/`children`/
+    // `className` (components/shared/LoadingState.tsx). Se le pasa el
+    // texto como `children`, que sí existe.
+    loading: () => <LoadingState>Cargando galería de imágenes…</LoadingState>,
+  },
+);
 
 const CONDITION_LABELS: Record<ProductCondition, string> = {
   nuevo: "Nuevo",
