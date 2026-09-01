@@ -25,3 +25,16 @@ export const SELLER1: TestUser = {
   password: PASSWORD,
   displayName: "TecnoImports Perú",
 };
+
+/**
+ * Andes Digital Store — vendedor con 8 productos del seed. Fase 6.6: es el
+ * dueño real del ÚNICO pedido `pagado` del seed (`c0000000-...-002`,
+ * `supabase/seed.sql` sección 5) — verificado leyendo `order_items.seller_id`
+ * de ese pedido (`a0000000-...-005`), no asumido. `seller1` NO tiene ningún
+ * pedido en estado `pagado`.
+ */
+export const SELLER2: TestUser = {
+  email: "seller2@mercadotech.test",
+  password: PASSWORD,
+  displayName: "Andes Digital Store",
+};

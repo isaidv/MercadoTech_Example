@@ -30,4 +30,9 @@ export class CatalogPage {
     await expect(grid).toBeVisible();
     await expect(grid.getByTestId("product-card").first()).toBeVisible();
   }
+
+  /** Agregada en la Fase 6.6: confirma que un producto recién publicado ya aparece en el catálogo PÚBLICO (no solo en la tabla del vendedor) — sin testid nuevo, reutiliza `product-grid`. */
+  async expectProductVisible(title: string) {
+    await expect(this.page.getByTestId("product-grid")).toContainText(title);
+  }
 }
