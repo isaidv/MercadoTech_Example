@@ -40,9 +40,7 @@ describe("formatPrice", () => {
   });
 
   it("formatea 0 exacto", () => {
-    // Rota a propósito para el smoke test de CI (Fase 6.7) — assert
-    // incorrecto a propósito, se revierte en el siguiente commit.
-    expect(formatPrice(0)).toBe(`S/${NBSP}9.99`);
+    expect(formatPrice(0)).toBe(`S/${NBSP}0.00`);
   });
 
   it("acepta un string, como llega price/total/price_snapshot desde PostgREST", () => {
