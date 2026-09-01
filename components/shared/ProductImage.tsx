@@ -16,6 +16,14 @@ type ProductImageProps = {
   fill?: boolean;
   width?: number;
   height?: number;
+  /**
+   * Fase 7.2 (docs/PERFORMANCE.md): pasa a `next/image` `priority` (precarga
+   * + sin `loading="lazy"`). `false` por default a propósito — usarlo en
+   * más de una imagen por página compite por el mismo ancho de banda
+   * inicial y empeora el LCP en vez de mejorarlo. Solo lo pasa en `true` la
+   * portada above-the-fold de la home (`ProductGrid`, primer ítem).
+   */
+  priority?: boolean;
 };
 
 /**
@@ -32,6 +40,7 @@ export function ProductImage({
   fill = true,
   width,
   height,
+  priority = false,
 }: ProductImageProps) {
   const [failed, setFailed] = useState(false);
 
@@ -57,6 +66,7 @@ export function ProductImage({
         alt={alt}
         fill
         sizes={sizes ?? "(min-width: 1024px) 25vw, 50vw"}
+        priority={priority}
         className={cn("object-cover", className)}
         onError={() => setFailed(true)}
       />
@@ -70,6 +80,7 @@ export function ProductImage({
       width={width ?? 400}
       height={height ?? 400}
       sizes={sizes}
+      priority={priority}
       className={cn("object-cover", className)}
       onError={() => setFailed(true)}
     />

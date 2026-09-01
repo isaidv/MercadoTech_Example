@@ -13,6 +13,15 @@ type ProductGridProps = {
   /** Título/descripción del EmptyState — override opcional para contextos donde "ajustá los filtros" no aplica (ej. la pestaña "Resultados con IA", que sugiere reformular en vez de filtrar). */
   emptyTitle?: string;
   emptyDescription?: string;
+  /**
+   * Fase 7.2 (docs/PERFORMANCE.md): `true` SOLO en la home — marca la
+   * PRIMERA tarjeta (la única above-the-fold de forma consistente, sea
+   * cual sea el ancho de pantalla) con `priority`. `false`/ausente en
+   * `/buscar` y `/categoria/[slug]`, que comparten este mismo grid: ahí
+   * "el primer producto" cambia con cada filtro/búsqueda y no hay
+   * garantía de que esté above-the-fold.
+   */
+  priorityFirstImage?: boolean;
 };
 
 const GRID_CLASSES = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
@@ -32,7 +41,14 @@ function ProductCardSkeleton() {
 }
 
 /** Grid responsive (1/2/3/4 columnas) + skeleton durante carga + EmptyState si no hay resultados. Nunca conoce Supabase: todo llega resuelto por props. */
-export function ProductGrid({ items, loading, emptyAction, emptyTitle, emptyDescription }: ProductGridProps) {
+export function ProductGrid({
+  items,
+  loading,
+  emptyAction,
+  emptyTitle,
+  emptyDescription,
+  priorityFirstImage,
+}: ProductGridProps) {
   if (loading) {
     return (
       <div className={GRID_CLASSES}>
@@ -56,8 +72,13 @@ export function ProductGrid({ items, loading, emptyAction, emptyTitle, emptyDesc
 
   return (
     <div data-testid="product-grid" className={GRID_CLASSES}>
-      {items.map((product) => (
-        <ProductCard key={product.id} product={product} similarity={product.similarity} />
+      {items.map((product, index) => (
+        <ProductCard
+          key={product.id}
+          product={product}
+          similarity={product.similarity}
+          priority={priorityFirstImage && index === 0}
+        />
       ))}
     </div>
   );

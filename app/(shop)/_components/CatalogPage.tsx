@@ -16,6 +16,8 @@ type CatalogPageProps = {
   title?: string;
   /** Fijado desde el segmento de ruta en /categoria/[slug]; ausente en "/" y "/buscar". */
   categorySlug?: string;
+  /** Fase 7.2: solo lo pasa la home — ver `ProductGrid`. */
+  priorityFirstImage?: boolean;
 };
 
 /**
@@ -40,7 +42,7 @@ type CatalogPageProps = {
  * puede pre-renderizarse estática, lo cual ya era cierto de todos modos
  * (todo el contenido depende de datos client-side de Supabase).
  */
-export function CatalogPage({ title, categorySlug }: CatalogPageProps) {
+export function CatalogPage({ title, categorySlug, priorityFirstImage }: CatalogPageProps) {
   const searchParams = useSearchParams();
   const { items, total, page, loading, error, filters, setFilter, setPage, retry } =
     useProducts(categorySlug);
@@ -77,6 +79,7 @@ export function CatalogPage({ title, categorySlug }: CatalogPageProps) {
               <ProductGrid
                 items={items}
                 loading={loading}
+                priorityFirstImage={priorityFirstImage}
                 emptyAction={
                   hasActiveFilters ? (
                     <Button variant="secondary" onClick={clearFilters}>

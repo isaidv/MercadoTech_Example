@@ -16,5 +16,8 @@ import { CatalogPage } from "@/app/(shop)/_components/CatalogPage";
 export const dynamic = "force-dynamic";
 
 export default function HomePage() {
-  return <CatalogPage title="Catálogo" />;
+  // Fase 7.2 (docs/PERFORMANCE.md): SOLO la home marca su primera tarjeta
+  // con `priority` — es la única ruta del catálogo donde "el primer
+  // producto" es de forma consistente el LCP above-the-fold.
+  return <CatalogPage title="Catálogo" priorityFirstImage />;
 }
