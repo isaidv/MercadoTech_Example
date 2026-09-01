@@ -35,9 +35,14 @@ tal cual salió); la corrección es un paso aparte y humano-supervisado.
 - [ ] `npm run build` exit 0 — si no, FALLIDA (pegar el error). (Solo
       cuando el cambio toca la app web; si es un cambio exclusivo de
       `mcp/`, correr en su lugar `npm run type-check` DENTRO de `mcp/`.)
-- [ ] `npm run test` — **no existe todavía en este repo** (llega en la
-      sesión 6). Hasta entonces este ítem se marca N/A y NO cuenta como
-      fallo; no inventar un resultado.
+- [ ] `npm run test` exit 0 — OBLIGATORIO desde la Fase 6.8
+      (`docs/DEBUGGING.md`). Si falla, FALLIDA (pegar el test que rompió,
+      tal cual lo reporta Vitest).
+- [ ] `npm run test:e2e -- --project=chromium` — SOLO si el stack local
+      está arriba (`supabase status` en verde primero). Si el stack está
+      abajo, este ítem se marca N/A y NO cuenta como fallo (no se levanta
+      Supabase solo para el gate). Si el stack está arriba y la suite
+      falla, FALLIDA (pegar el resumen de Playwright).
 - [ ] Los 4 greps de verificación de capas de `CLAUDE.md` → los 4 vacíos:
   ```bash
   grep -rl "@/lib/supabase" components hooks
@@ -59,7 +64,8 @@ tal cual salió); la corrección es un paso aparte y humano-supervisado.
 - [x] npm run lint: exit 0
 - [x] npm run type-check: exit 0
 - [x] npm run build: exit 0
-- [—] npm run test: N/A (sesión 6)
+- [x] npm run test: exit 0
+- [—] npm run test:e2e: N/A (Supabase local abajo)
 - [x] greps de capas: los 4 vacíos
 
 ## VALIDACIÓN FALLIDA
