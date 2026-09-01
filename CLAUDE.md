@@ -13,10 +13,14 @@ centro de soporte operado por agentes de voz. Plan completo del proyecto en
 Sesiones completas: **2** (infraestructura — BD, RLS, Storage, seed), **3**
 (frontend — las 14 rutas del mapa, flujo comprador y vendedor), **4** (RAG
 de compras/soporte — indexación vectorial, chat con fuentes citadas,
-`/asistente` y `/soporte`) y **5** (Skills de gobernanza en
-`.claude/skills/` + servidor MCP de solo lectura en `mcp/`). Heredado sin
-resolver: `docs/COSTOS.md`/`docs/PROMPTS.md` de la sesión 1 (nunca
-ejecutada). Próxima: sesión 6 (testing).
+`/asistente` y `/soporte`), **5** (Skills de gobernanza en
+`.claude/skills/` + servidor MCP de solo lectura en `mcp/`) y **6**
+(testing — Vitest unitario, Playwright E2E comprador/vendedor, CI en
+GitHub Actions, runbook de debugging; sin tests de componentes, sin tests
+de `mcp/`, sin branch protection). Heredado sin resolver:
+`docs/COSTOS.md`/`docs/PROMPTS.md` de la sesión 1 (nunca ejecutada).
+Próxima: sesión 7 (performance, secretos y deploy — el CI ya quedó
+armado en la sesión 6, no se repite).
 
 Detalle fase por fase, decisiones y deuda técnica vigente:
 [`docs/BITACORA.md`](docs/BITACORA.md). Pasada de QA (responsive/a11y/estados)
@@ -26,7 +30,9 @@ Los 6 casos de prueba del RAG y su calibración de thresholds:
 [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md). Ciclo de revisión de
 gobernanza de la sesión 5 (Skills sobre código real, hallazgo →
 corrección/deuda): [`docs/REVISION_S5.md`](docs/REVISION_S5.md). Servidor
-MCP: [`mcp/README.md`](mcp/README.md).
+MCP: [`mcp/README.md`](mcp/README.md). Runbook de debugging (síntoma →
+test → logs → fix, errores típicos del stack):
+[`docs/DEBUGGING.md`](docs/DEBUGGING.md).
 
 ## Comandos
 
@@ -37,12 +43,16 @@ npm run start          # sirve el build de producción
 npm run lint            # ESLint (eslint-config-next)
 npm run type-check       # tsc --noEmit, type-check estricto sin emitir archivos
 npm run db:types          # regenera types/database.ts desde el Supabase local
+npm run test                # Vitest — lib/ y services/, sin red (sesión 6)
+npm run test:coverage        # ídem + cobertura en coverage/ (el reporte de consola OCULTA
+                             #   archivos al 100% — ver el HTML si un archivo no aparece)
 ```
 
 Con Supabase local levantado (`supabase start`, requiere Docker):
 
 ```bash
-supabase db reset    # reconstruye BD desde migraciones + seed.sql
+supabase db reset    # reconstruye BD desde migraciones + seed.sql — PRERREQUISITO de test:e2e
+npm run test:e2e      # Playwright E2E (comprador + vendedor), SOLO contra Supabase local
 ```
 
 Con `ANTHROPIC_API_KEY`/`VOYAGE_API_KEY` en `.env.local` (sesión 4):
@@ -58,6 +68,14 @@ cd mcp && npm run dev      # servidor MCP por stdio (tsx watch), reinicia solo a
 cd mcp && npm run build     # build de producción a mcp/dist/ (tsup)
 npx @modelcontextprotocol/inspector npx tsx mcp/src/index.ts   # Inspector: probar tools/resources/prompts sin Claude
 ```
+
+## CI (`.github/workflows/ci.yml`, sesión 6)
+
+Corre en cada push/PR a `main` (y manual): job `checks` (lint,
+type-check, `npm run test`, type-check de `mcp/`) → job `e2e` (Playwright
+contra un Supabase local EFÍMERO del propio runner, credenciales leídas
+con `supabase status`, sin secretos). Sin branch protection todavía
+(sesión 7).
 
 ## Stack
 
@@ -149,6 +167,11 @@ APROBADA/FALLIDA al cerrar una fase) y `mercadotech-tech-lead` (scorecard
 ponderado ante decisiones de diseño o deuda técnica). Las 4 **reportan,
 nunca editan código** — corregir es siempre un paso humano aparte.
 
+**Norma de cierre (sesión 6):** al terminar cualquier feature, el ciclo es
+`code-reviewer` → correcciones humanas → `automatic-validator` (que ya
+corre `npm run test` obligatorio y `npm run test:e2e` si el stack local
+está arriba). Rojo en cualquiera de los dos = no se commitea.
+
 ## Estructura de carpetas
 
 ```
@@ -176,7 +199,7 @@ supabase/migrations/                 fuente de verdad del esquema, RLS y Storage
 supabase/schema.sql, policies.sql, seed.sql   referencia, NO fuente de verdad
 supabase/tests/                        rls-validation.sql (Fase 2.6)
 mcp/src/                                 tools/, resources/, prompts/, shared/ (servidor MCP, sesión 5)
-docs/                                    ARQUITECTURA.md, BITACORA.md, SESION3_CHECKLIST.md, RAG.md, REVISION_S5.md
+docs/                                    ARQUITECTURA.md, BITACORA.md, SESION3_CHECKLIST.md, RAG.md, REVISION_S5.md, DEBUGGING.md
 ```
 
 ## Convenciones
@@ -204,6 +227,20 @@ docs/                                    ARQUITECTURA.md, BITACORA.md, SESION3_C
 - Las transiciones de estado del kanban de pedidos se validan en
   `hooks/useSellerOrders.ts` (`move`), ANTES de llamar al service — nunca en
   `components/` ni en el service.
+- **Testing (sesión 6):** un test unitario vive JUNTO al archivo que
+  prueba (`cart.service.test.ts` al lado de `cart.service.ts`); los E2E
+  viven en `e2e/`. Los tests unitarios inyectan el cliente Supabase por
+  parámetro — jamás `vi.mock` de `lib/supabase/*`; `lib/ai/*` sí se
+  mockea por módulo. Un test documenta el CONTRATO REAL del código, no el
+  que "debería" tener — si un comportamiento real parece un bug, se anota
+  como deuda técnica en `docs/BITACORA.md`, nunca se ajusta el test para
+  que luzca bien. Selectores E2E: `data-testid` en kebab-case o rol
+  accesible — nunca clases CSS ni texto largo.
+- `package.json` fija `"packageManager": "npm@11.6.2"` (la versión que
+  generó `package-lock.json`) — no se cambia sin regenerar el lockfile Y
+  actualizar el mismo pin en `.github/workflows/ci.yml`; si se
+  desalinean, `npm ci` falla en CI con "Missing from lock file"
+  (`docs/DEBUGGING.md`).
 - Verificación de capas (debe devolver vacío antes de cerrar cualquier fase):
   ```bash
   grep -rl "@/lib/supabase" components hooks

@@ -20,6 +20,336 @@ sesión 5.
 
 ---
 
+## Sesión 6 — Testing, Debugging y Automatización (2026-08-31, commits `c622302`..`bb1ebc8`)
+
+Construye la red de seguridad que faltaba: Vitest para lógica pura y
+services, Playwright para los dos flujos E2E críticos (comprador y
+vendedor, con el kanban movido por TECLADO), un pipeline de CI en GitHub
+Actions con dos jobs encadenados, y un runbook de debugging. Spec:
+[`MercadoTech_sesion6.md`](../MercadoTech_sesion6.md). Fases ejecutadas:
+6.1 a 6.8 (más el Prompt 0 y la conexión del remoto).
+
+**Nota sobre commits:** el cierre de la sesión 5 que abrió esta se pidió
+verificar contra el commit `eed65ff` — ese hash **no existe** en este
+repositorio (`git log` lo confirma). El cierre real de la sesión 5 es
+`99e5a83` (`docs: add project log and update CLAUDE.md at close of Sesion
+5`); todo el rango de esta sección se midió contra `99e5a83..HEAD` (11
+commits, `git log --reverse --format="%h %s" 99e5a83..HEAD`), no contra
+el hash pedido.
+
+### Fase 0 — Remoto de GitHub y tooling (commits `c622302`, `faf21f9`)
+
+**Construido:** `PROMPTS_sesion6.md`; conexión de `origin` a
+`github.com/isaidv/MercadoTech_Example` y push inicial; instalación de
+`vitest`, `@vitest/coverage-v8`, `@playwright/test`.
+
+**Decisión — sin `gh` CLI autenticado en el entorno:** el push y, más
+adelante, la apertura/cierre de PRs de prueba (Fase 6.7) se hicieron con
+el token que ya tenía guardado el credential manager de git para
+`github.com` (el mismo que ya usaba `git push`) — nunca se pidió ni se
+manejó una contraseña a mano.
+
+### Fase 6.1 — Infraestructura de Vitest (commit `eb2b751`)
+
+**Construido:** `vitest.config.mts` (`environment: "node"`, alias `@/` →
+raíz, `coverage.include: ["lib/**", "services/**"]`); scripts `test`,
+`test:watch`, `test:coverage`.
+
+**Decisión 6 — sin jsdom ni Testing Library:** esta sesión no testea
+componentes React (decisión explícita, ver Restricciones de la spec) —
+`environment: "node"` alcanza y ninguna de las dos librerías se instaló.
+
+### Fase 6.2 — Suite de lógica pura (commit `2f6c9b0`)
+
+**Construido:** `lib/utils.test.ts`, `lib/validators/auth.test.ts`,
+`lib/validators/product.test.ts`, `lib/ai/context-builder.test.ts`,
+`lib/ai/prompts.test.ts` — 5 archivos, 511 líneas.
+
+**Corrección sobre la spec (decisión 3):** la versión anterior de la spec
+pedía testear "formateo de fechas", una función que no existe en el
+repo — se testeó solo lo que existe (`cn` y `formatPrice`).
+
+**Problema real, no un bug:** un test viejo asumía que `formatPrice`
+usaba un espacio normal entre `"S/"` y el monto; el código real inserta
+`U+00A0` (NBSP, no U+0020) — se verificó carácter por carácter antes de
+escribir cada aserción, en vez de copiar el string a ojo.
+
+### Fase 6.3 — Suite de services con mock inyectado (commit `eef7bad`)
+
+**Construido:** `services/test-utils/supabase-mock.ts` (`MockQueryBuilder`
+encadenable, `PromiseLike`, `filterCalls`/`mockError`, 246 líneas) + 10
+archivos `*.service.test.ts` + `hooks/useSellerOrders.test.ts` — 15
+archivos tocados en total, 1646 líneas.
+
+**Decisión 7 — mockeo de DOS niveles:** el cliente Supabase se INYECTA
+siempre (nunca `vi.mock` de `lib/supabase/*`); `lib/ai/*`
+(`chat.service.test.ts`, `embedding.service.test.ts`) sí se mockea con
+`vi.mock` de módulo — es la ÚNICA excepción, porque `chat.service`/
+`embedding.service` importan `lib/ai/` directo, sin cliente inyectable.
+
+**Decisión 4 — la regla del kanban se testea donde vive:** la spec
+anterior la ponía en `seller.service.updateOrderStatus`, contradiciendo a
+`CLAUDE.md` (la secuencia vive en el HOOK). Se exportó `canMove()`, ya
+existente en `hooks/useSellerOrders.ts`, y se testeó directo, sin React —
+refactor mecánico, cero lógica nueva.
+
+**Decisión 5 — los tests anclan al comportamiento real:** `addItem`
+suma cantidades duplicadas y recorta a `[1, stock]`; un test viejo pedía
+"rechazar quantity ≤ 0", que no es el contrato real. Se testeó lo que el
+código realmente hace.
+
+**Problema real, no corregido (RESTRICCIONES de la fase lo prohibían):**
+`storage.service.getPublicUrl` tiene su PROPIO `createClient()` por
+default, y ni `product.service.mapProductRow` ni `cart.service.mapCartRow`
+le pasan el cliente inyectado del test — bug real de "cliente inyectable"
+incompleto. Se trabajó alrededor con valores dummy de
+`NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY` en `vitest.config.mts` (nunca salen
+a la red, `getPublicUrl` solo concatena strings). Verificado con Docker
+apagado: la suite completa pasa sin red.
+
+### Fase 6.4 — Infraestructura de Playwright (commit `d6bfcad`)
+
+**Construido:** `playwright.config.ts`, 7 Page Objects (`e2e/pages/`),
+`e2e/fixtures/test.ts`, `e2e/data/{users.ts,product-image.jpg}`,
+`home.spec.ts`, 17 `data-testid` nuevos en componentes reales (17 líneas,
+el único cambio de producción permitido en esta fase).
+
+**Problema real del entorno, no del código:** Firefox nunca lanza en este
+sandbox (`spawn UNKNOWN`, confirmado con `firefox.exe --version` directo
+→ `Permission denied`, exit 126) — bloqueo de permisos del SO, no de
+Playwright ni de la app. Chromium y WebKit sí lanzan. `home.spec.ts` se
+verificó en 2/3 navegadores; Firefox queda documentado como limitación
+del entorno de desarrollo, no como fase incompleta (en CI, sección 6.7,
+no aplica: solo corre Chromium).
+
+### Fase 6.5 — E2E del flujo comprador (commit `07f4352`)
+
+**Construido:** `buyer-flow.spec.ts` (8 pasos, `test.step`),
+`buyer-negative.spec.ts` (3 casos) — 171 líneas.
+
+**Problema real de la app, encontrado y NO corregido (fuera de
+alcance):** `app/(shop)/layout.tsx` y `producto/[id]/page.tsx` llaman
+cada uno su PROPIA instancia de `useCart(userId)`, sin contexto
+compartido — el contador del navbar no se actualiza al agregar un
+producto desde su ficha (el insert en `cart_items` sí es correcto,
+confirmado por consulta directa a Postgres). El test se ancló al toast
+de confirmación (consecuencia real e inmediata) en vez del contador roto.
+
+**Corrección sobre el seed:** el producto "sin stock" real es
+`b0000000-...-007` (SSD), no `...-006` (RAM, con stock 20) como decía un
+supuesto previo — verificado leyendo `supabase/seed.sql` directo.
+
+### Fase 6.6 — E2E del flujo vendedor con kanban por teclado (commit `9814d88`)
+
+**Construido:** `seller-flow.spec.ts`, `seller-negative.spec.ts` — 247
+líneas; fixture `seller2Page` nueva.
+
+**Decisión 9 — kanban movido por TECLADO** (`KeyboardSensor` activo desde
+la sesión 3): focus en la tarjeta (el asa ES la tarjeta completa) →
+`Space` → `ArrowRight`/`ArrowLeft` → `Space`. Nunca `mouse.down/move/up`.
+
+**Corrección sobre el seed (verificada, no asumida):** el ÚNICO pedido
+`pagado` del seed es `c0000000-...-002` y pertenece a **seller2** (Andes
+Digital Store), no a seller1 — `c...03` está `enviado`, no `pagado`. Todo
+el flujo se corrió con seller2.
+
+**Problema real de la app, encontrado vía trace de red y NO corregido:**
+`app/(seller)/layout.tsx` y `vendedor/publicar/page.tsx` llaman cada uno
+su PROPIA instancia de `useAuth()` — al publicar muy rápido, la del
+formulario podía no haber resuelto `profile` todavía y mandaba
+`seller_id: ""`, rechazado por Postgres (`22P02 invalid input syntax for
+type uuid`). Mismo patrón que el bug del carrito (Fase 6.5). El test se
+ajustó con `waitForLoadState("networkidle")` antes de llenar el
+formulario; producción intacta.
+
+**Hallazgo real de accesibilidad (el que anticipaba la Fase 6.6):**
+`ArrowLeft` nunca mueve una tarjeta hacia atrás en el kanban — probado
+con eventos de teclado reales en dos pares de columnas distintos, ninguno
+resolvió un destino de drop válido (`ArrowRight` sí funciona, confirmado
+en el flujo principal). Causa probable: `sortableKeyboardCoordinates` está
+pensado para reordenar una lista, no para saltar entre los 5
+`SortableContext` independientes del tablero. El negativo de "retroceder"
+se reescribió para verificar el comportamiento REAL (nada se mueve,
+ningún toast) en vez del toast de rechazo, que nunca llega a intentarse.
+
+**Bug cosmético encontrado, sin corregir:** el `Select` de categoría del
+formulario del vendedor muestra el UUID crudo en el trigger en vez del
+nombre, tras seleccionar una opción (reproducido con clic real de mouse,
+no solo en Playwright) — `categoryId` queda bien guardado, el problema es
+solo visual.
+
+### Fase 6.7 — Pipeline de CI en GitHub Actions (commit `8513ddc`)
+
+**Construido:** `.github/workflows/ci.yml` (jobs `checks` y `e2e`, 207
+líneas) + `"packageManager": "npm@11.6.2"` en `package.json`.
+
+**Cambio de alcance decidido por el docente (registrado en la propia
+spec, `MercadoTech_sesion6.md`, "Registro de cambios de esta versión de
+la spec"):** esta sesión ABSORBIÓ el pipeline de CI que antes era la Fase
+7.1 — pasó a ser la Fase 6.7. `MercadoTech_sesion7.md` **todavía no
+existe en el repo** (`ls` lo confirma) — cuando se escriba, la nota deja
+constancia de que debe conservar solo performance/secretos/deploy/docs,
+sin repetir el CI.
+
+**Decisión 10 (lección real de ReadHub):** el lockfile lo generó
+`npm@11.6.2` en Windows — otra versión de npm en el runner Linux resuelve
+las dependencias OPCIONALES distinto y `npm ci` falla con "Missing from
+lock file". `packageManager` en `package.json` y `npm install -g
+npm@11.6.2` en los dos jobs del workflow tienen que coincidir EXACTO.
+
+**Decisión 11 — credenciales dinámicas, no secretos:** el job `e2e` lee
+`supabase status -o json` + `jq` DESPUÉS de `supabase db reset` y arma las
+env vars del paso de tests con eso — son las claves estándar de
+cualquier `supabase start` local, el contenedor nace y muere con el job,
+no protegen nada real. Cero `GitHub Secrets` en el workflow.
+
+**Problema real, verificado y absorbido por diseño:** en la primera
+corrida de push (`run #1`), `seller-flow.spec.ts` falló una vez en el
+paso del kanban por teclado y pasó en el retry automático (`retries: 2`
+en CI) — el job quedó verde porque ese retry existe justo para esto
+(decisión 12). Queda como tarea de diagnóstico aparte (hipótesis: el
+runner de Actions es más lento que el entorno local y compite con la
+`transition` CSS de dnd-kit entre las tres teclas), no se "arregló" el
+test a ciegas.
+
+**Verificación real en GitHub Actions** (vía `gh`/API, con el token del
+credential manager de git — nunca `gh auth login` con contraseña):
+
+| Run | Evento | Commit | Resultado | `checks` | `e2e` |
+|---|---|---|---|---|---|
+| #1 | push a `main` | `8513ddc` | ✅ success | 56 s | 3 m 44 s (total 4 m 47 s) |
+| #2 | PR #1 (`ci-smoke`, cambio trivial) | `b2bc962` | ✅ success | — | — |
+| #3 | PR #1 (test roto a propósito) | `bb97828` | ❌ **failure** | failure | *skipped* (`needs: checks`) |
+| #4 | PR #1 (revert) | `5f9084b` | ✅ success | — | — |
+
+El PR #1 se cerró SIN mergear tras el ciclo (rama `ci-smoke` borrada,
+local y remota). Artefacto de cobertura del run #1: 130 KB, expira a los
+7 días (`retention-days: 7`).
+
+### Fase 6.8 — Debugging y actualización de los gates (commit `bb1ebc8`)
+
+**Construido:** `docs/DEBUGGING.md` (243 líneas: flujo síntoma→test→logs→
+fix, cómo pedirle debugging a Claude, tabla de 6 errores típicos) +
+edición quirúrgica de `.claude/skills/mercadotech-automatic-validator/SKILL.md`
+(ítem `npm run test` obligatorio + `npm run test:e2e` condicional).
+
+**Corrección sobre la spec, dos veces en el mismo lugar:** "modelo HF sin
+proveedor" de la tabla de errores típicos es un resabio de ReadHub
+(Hugging Face) — MercadoTech usa Claude + Voyage desde la sesión 4. Ya
+había pasado exactamente lo mismo en la Fase 5.1 de la sesión anterior
+(la regla del enforcer sobre `@huggingface/*`) — spec vieja, mismo patrón
+de corrección.
+
+**Problema del propio cierre de esta sesión (no de la 6.8, encontrado al
+armar los números finales de abajo):** el reporte de CONSOLA de
+`npm run test:coverage` OCULTA archivos con 100 % en las 4 métricas —
+`lib/validators/{auth,product}.ts` y `lib/ai/{context-builder,prompts}.ts`
+no aparecen en la tabla de texto, aunque SÍ están en `coverage/*.html` al
+100 % (verificado abriendo cada uno). No es un déficit de cobertura real:
+es que el reporter de texto de Istanbul/v8 no lista archivos totalmente
+cubiertos. Documentado acá para que nadie entre en pánico leyendo la
+consola.
+
+## Números finales de la sesión
+
+- **Tests unitarios:** 194, en 17 archivos, todos verdes con Docker
+  apagado (`npm run test`, sin red).
+- **Cobertura de `services/`:** 88.88 % líneas, 86.75 % ramas — supera el
+  objetivo de ≥ 80 % líneas.
+- **Cobertura de `lib/validators/` y `lib/ai/context-builder.ts`:** 100 %
+  en las 4 métricas (verificado en `coverage/*.html`, ver el hallazgo de
+  la Fase 6.8 arriba sobre por qué no aparece en la consola).
+- **E2E:** 8 tests (`buyer-flow`×1, `buyer-negative`×3, `home`×1,
+  `seller-flow`×1, `seller-negative`×2) en 5 specs, 7 Page Objects, verdes
+  contra Supabase local con seed (`npm run test:e2e -- --project=chromium`).
+- **CI:** job `checks` ~1 min, job `e2e` ~4 min, corrida completa ~5 min
+  (run #1, tabla arriba).
+
+## Qué quedó explícitamente fuera de esta sesión
+
+- **Tests de componentes React** (decisión 6) — sin jsdom ni Testing
+  Library instalados; fuera de alcance por diseño, no por falta de tiempo.
+- **Tests automatizados de `mcp/`** — sigue sin script `test` propio
+  (deuda heredada de la sesión 5, ver abajo); el CI solo corre su
+  `type-check`.
+- **Branch protection** — el CI corre y se ve verde/rojo, pero nada
+  todavía impide mergear un PR en rojo (sesión 7).
+- **Deploy** — sigue sin Vercel ni ningún otro hosting conectado (sesión 7).
+
+## Estado de los criterios de aceptación de la sesión
+
+| Criterio | Estado | Evidencia |
+|---|---|---|
+| `npm run test` verde con Docker apagado, con la cobertura objetivo | ✅ | 194/194, Fase 6.3 verificada explícitamente con Docker apagado; `services/` 88.88 % líneas (objetivo ≥80 %), validadores+context-builder 100 % (`coverage/*.html`) |
+| `npm run test:e2e` verde contra Supabase local con el seed | ✅ | 8/8 tests, `npm run test:e2e -- --project=chromium` tras `supabase db reset`, run #1 de CI |
+| El kanban está cubierto por E2E vía teclado | ✅ con hallazgo | `ArrowRight` (avanzar) cubierto y verde; `ArrowLeft` (retroceder) es un hallazgo de accesibilidad real, documentado y NO maquillado con mouse (`seller-negative.spec.ts`) |
+| Push y PR de prueba muestran ambos jobs en verde; un test roto los pone en rojo | ✅ | Tabla de runs #1–#4 arriba, con enlaces verificables en la pestaña Actions del repo |
+| La Skill validator ejecuta los tests como parte del gate | ✅ | Diff quirúrgico de `SKILL.md`; demostrado manualmente (FALLIDA→APROBADA) porque la Skill recién editada necesita reiniciar sesión para recargar |
+| `npm run lint`, `npm run type-check` y `npm run build` pasan | ✅ | Reverificados al cierre de cada fase de esta sesión, sin excepción |
+
+## Deuda técnica y limitaciones conocidas (nuevas de esta sesión)
+
+1. **`useAuth()` sin contexto compartido** (Fase 6.6, mismo patrón que
+   `useCart()` de la Fase 6.5 abajo) — cada componente que lo llama hace
+   su propio fetch de `profile`, sin caché ni coordinación; puede mandar
+   un `seller_id: ""` si se publica muy rápido tras cargar la página. Sin
+   dueño de sesión asignado.
+2. **`useCart()` sin contexto compartido** (Fase 6.5) — el contador del
+   navbar no se actualiza al agregar desde la ficha de un producto; hace
+   falta un reload. Sin dueño de sesión asignado.
+3. **Kanban: `ArrowLeft` no mueve tarjetas hacia atrás** (Fase 6.6,
+   hallazgo de accesibilidad real) — un vendedor solo-teclado puede
+   avanzar un pedido pero nunca retroceder ninguno. Necesita un
+   `coordinateGetter` a medida para `OrdersKanban.tsx`, consciente de los
+   5 contenedores del tablero. Sin dueño de sesión asignado.
+4. **Select de categoría muestra el UUID crudo, no el nombre** (Fase 6.6)
+   — cosmético, `categoryId` se guarda bien. Sin dueño de sesión asignado.
+5. **`seller-flow.spec.ts` fue flaky una vez en GitHub Actions** (Fase
+   6.7) — el retry de CI lo absorbió; falta diagnosticar si es timing de
+   dnd-kit bajo un runner más lento antes de que se vuelva costumbre
+   confiar en el retry.
+6. **`storage.service.getPublicUrl` con su propio cliente por default**
+   (deuda ya documentada en la Fase 6.3, sección de arriba) — sigue sin
+   dueño de sesión asignado.
+7. **Sin tests automatizados en `mcp/`** (heredada de la deuda técnica #5
+   de la sesión 5) — **parcialmente resuelta**: el validator ya no la
+   marca "N/A" para el proyecto web, pero `mcp/` en sí sigue sin
+   `package.json`'s `test` script; el CI solo corre su `type-check`.
+
+## Pendientes para la sesión 7 y heredados
+
+- **Heredado de la sesión 1 (no ejecutada):** sigue sin `docs/COSTOS.md`
+  ni `docs/PROMPTS.md`.
+- **Vista `public_profiles`** (deuda técnica #1 de la sesión 3) — sin
+  dueño de sesión asignado.
+- **Trigger de reposición de stock al cancelar** (deuda técnica #2 de la
+  sesión 3) — sin dueño de sesión asignado.
+- **Estado de pedido por vendedor/ítem** (deuda técnica #3 de la sesión
+  3) — sin dueño de sesión asignado.
+- **Sugerencia de ticket en modo soporte no 100 % consistente** (deuda
+  técnica #1 de la sesión 4) — sin dueño de sesión asignado.
+- **Calibración de threshold con tráfico real** (deuda técnica #2 de la
+  sesión 4) — sin dueño de sesión asignado.
+- **`getProductsByIds` no distingue "no encontrado" de "proveedor
+  caído"** (deuda técnica #1 de la sesión 5) — sin dueño de sesión
+  asignado.
+- **Documentar en `docs/ARQUITECTURA.md` la decisión de no hacer el
+  monorepo** (deuda técnica #4 de la sesión 5) — pendiente simple.
+- **`useAuth()`/`useCart()` sin contexto compartido, kanban `ArrowLeft`,
+  Select de categoría, flake de `seller-flow.spec.ts` en CI** (deuda
+  técnica #1–5 de esta sesión, arriba) — ninguna con dueño de sesión
+  asignado.
+- **Tests automatizados de `mcp/`** (deuda técnica #7 de esta sesión) —
+  sin dueño de sesión asignado.
+- **Performance, secretos y deploy** — sesión 7. `MercadoTech_sesion7.md`
+  todavía no existe (ver la nota de la Fase 6.7 arriba) — cuando se
+  escriba, no debe incluir CI: ya quedó armado acá.
+- **Branch protection** — sesión 7 (no se configuró a propósito en la
+  6.7, ver Restricciones de esa fase).
+- **Agente de voz** — sesión 8, sin cambios desde el cierre de la sesión 5.
+
+---
+
 ## Sesión 5 — Custom Skills y Protocolo MCP (2026-08-31, commits `8611160`..`fe4d9b0`)
 
 Construye dos cosas nuevas sobre el proyecto existente: cuatro **Skills**
