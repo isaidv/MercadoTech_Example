@@ -93,3 +93,5 @@ Reglas derivadas (aplican en todas las sesiones):
   calibran con datos del modelo que se está usando.
 - En CI se fija la versión de npm (deps opcionales de Linux ausentes en el lockfile
   generado en Windows) y el E2E corre contra un Supabase local efímero, sin secretos.
+
+<!-- ci-smoke: PR de prueba de la Fase 6.7, se cierra sin mergear. -->
