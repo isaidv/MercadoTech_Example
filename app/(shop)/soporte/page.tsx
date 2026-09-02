@@ -1,14 +1,21 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useAuth } from "@/hooks/useAuth";
 import { useChat } from "@/hooks/useChat";
 import { useMyTickets } from "@/hooks/useMyTickets";
-import { ChatWindow } from "@/components/chat/ChatWindow";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { TicketCard } from "@/components/support/TicketCard";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { LoadingState } from "@/components/shared/LoadingState";
+
+// Fase 7.2 — mismo `dynamic import` que `/asistente` (mismo componente,
+// mismo motivo: docs/PERFORMANCE.md, decisión 4).
+const ChatWindow = dynamic(() => import("@/components/chat/ChatWindow").then((m) => m.ChatWindow), {
+  ssr: false,
+  loading: () => <LoadingState>Cargando conversación…</LoadingState>,
+});
 
 /**
  * Agente de soporte (Fase 4.7, modo 'soporte') + "Mis tickets" debajo

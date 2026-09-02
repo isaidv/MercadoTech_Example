@@ -1,11 +1,24 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useAuth } from "@/hooks/useAuth";
 import { useChat } from "@/hooks/useChat";
-import { ChatWindow } from "@/components/chat/ChatWindow";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { Button } from "@/components/ui/button";
 import { LoadingState } from "@/components/shared/LoadingState";
+
+/**
+ * Fase 7.2 — `dynamic import` (decisión 4; docs/PERFORMANCE.md).
+ * `ChatWindow` solo se monta una vez que hay mensajes (`messages.length
+ * === 0` muestra las sugerencias iniciales en su lugar) — no hace falta
+ * en el bundle inicial de la ruta. `ssr: false`: nunca se renderiza en el
+ * primer paint (la condición de arriba lo evita), así que tampoco hace
+ * falta en el HTML del servidor.
+ */
+const ChatWindow = dynamic(() => import("@/components/chat/ChatWindow").then((m) => m.ChatWindow), {
+  ssr: false,
+  loading: () => <LoadingState>Cargando conversación…</LoadingState>,
+});
 
 const STARTER_SUGGESTIONS = [
   "¿qué laptop me recomiendas para diseño por menos de S/ 3,500?",
