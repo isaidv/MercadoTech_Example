@@ -28,7 +28,7 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
       <footer className="border-t border-border py-6">
         <Container>
           <p className="text-center text-sm text-muted-foreground">
-            MercadoTech — proyecto educativo, sin fines comerciales reales.
+            MercadoTech — proyecto educativo, sin fines comerciales reales. En producción desde la Fase 7.4.
           </p>
         </Container>
       </footer>
