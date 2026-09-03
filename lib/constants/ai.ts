@@ -113,11 +113,16 @@ export const CONTEXT_BUILDER_MIN_TRUNCATED_SOURCE_CHARS = 200;
 
 /**
  * Modelo de chat por defecto. Se lee de `ANTHROPIC_CHAT_MODEL` con
- * fallback acá — id exacto, SIN sufijo de fecha (Guía Claude + Voyage,
- * lección 3): los ids con fecha pegada son variantes viejas, no se
- * construyen a mano.
+ * fallback acá.
+ *
+ * Corrección real (Fase 7.4, smoke test de producción): la Guía Claude +
+ * Voyage (lección 3) asumía que el id SIN sufijo de fecha
+ * ("claude-haiku-4-5") era el alias estable — falso para este modelo.
+ * Anthropic lo rechaza con 400 ("model: claude-haiku-4-5"), confirmado en
+ * vivo (`lib/ai/completion.ts` lo reporta tal cual). El id real y vigente
+ * de Haiku 4.5 SÍ lleva el sufijo de fecha: `claude-haiku-4-5-20251001`.
  */
-export const ANTHROPIC_CHAT_MODEL_DEFAULT = "claude-haiku-4-5";
+export const ANTHROPIC_CHAT_MODEL_DEFAULT = "claude-haiku-4-5-20251001";
 
 /**
  * `max_tokens` es obligatorio en la API de Claude (Guía, lección 4) —
